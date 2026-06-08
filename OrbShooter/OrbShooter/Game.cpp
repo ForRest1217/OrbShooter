@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Console.h"
 #include "SoundManager.h"
+#include "InGameScene.h" 
 
 void Init(GameState& state)
 {
@@ -36,8 +37,8 @@ void Update(GameState& state)
 		break;
 	case Scene::INGAME:
 		if (sceneChanged)
-			//InitInGame(state);
-		//UpdateInGame(state);
+			InitInGame(state);
+		UpdateInGame(state);
 		break;
 	case Scene::GAMEOVER:
 		break;
@@ -58,7 +59,7 @@ void Render(const GameState& state)
 		//RenderInfo(state);
 		break;
 	case Scene::INGAME:
-		//RenderInGame(state);
+		RenderInGame(state);
 		break;
 	case Scene::GAMEOVER:
 		break;

@@ -13,3 +13,9 @@ enum class Menu
 	INFO,
 	QUIT
 };
+enum class BubbleColor
+{
+	NONE = 0,
+	RED, GREEN, BLUE, YELLOW, VIOLET, CYAN,
+	COUNT
+};

@@ -6,6 +6,11 @@ int main()
 {
 	GameState state;
 	Init(state);
+	SetCursorVisible(false);
+
+	//Å×½ºÆ®
+	state.curScene = Scene::INGAME;
+
 	while (state.isRunning)
 	{
 		Update(state);
