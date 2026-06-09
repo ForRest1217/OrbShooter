@@ -2,9 +2,9 @@
 
 void InitInGame(GameState& state)
 {
-    for (int r = 0; r < GRID_ROWS; ++r)
-        for (int c = 0; c < GRID_COLS; ++c)
-            state.grid[r][c].color = BubbleColor::NONE;
+    for (int i = 0; i < GRID_ROWS; ++i)
+        for (int j = 0; j < GRID_COLS; ++j)
+            state.grid[i][j].color = BubbleColor::NONE;
 
     state.lastDropTick = GetTickCount64();
     state.score = 0;
@@ -44,16 +44,21 @@ void UpdateShooter(GameState& state)
 {
     state.shooter.prevAngle = state.shooter.angle;
 
-    if (GetKey(VK_LEFT))  state.shooter.angle -= 2.0f;
-    if (GetKey(VK_RIGHT)) state.shooter.angle += 2.0f;
+    if (GetKey(VK_LEFT))  
+        state.shooter.angle -= 0.3f;
+    if (GetKey(VK_RIGHT)) 
+        state.shooter.angle += 0.3f;
 
-    if (state.shooter.angle < -65.0f) state.shooter.angle = -65.0f;
-    if (state.shooter.angle > 65.0f) state.shooter.angle = 65.0f;
+    if (state.shooter.angle < -65.0f) 
+        state.shooter.angle = -65.0f;
+    if (state.shooter.angle > 65.0f) 
+        state.shooter.angle = 65.0f;
 }
 
 void ShootBall(GameState& state)
 {
-    if (state.ball.isMoving) return;
+    if (state.ball.isMoving) 
+        return;
 
     float rad = state.shooter.angle * 3.141592f / 180.0f;
 
@@ -73,7 +78,8 @@ void ShootBall(GameState& state)
 
 void UpdateBall(GameState& state)
 {
-    if (!state.ball.isMoving) return;
+    if (!state.ball.isMoving) 
+        return;
 
     state.ball.prevX = state.ball.x;
     state.ball.prevY = state.ball.y;
@@ -88,13 +94,13 @@ void UpdateBall(GameState& state)
     if (state.ball.x <= leftWall + 2)
     {
         state.ball.x = (float)(leftWall + 2);
-        state.ball.dirX *= -2;
+        state.ball.dirX *= -1;
     }
 
     if (state.ball.x >= rightWall - 2)
     {
         state.ball.x = (float)(rightWall - 2);
-        state.ball.dirX *= -2;
+        state.ball.dirX *= -1;
     }
 
     if (state.ball.y <= 2)
@@ -118,8 +124,9 @@ void UpdateBall(GameState& state)
 
 void ProcessMatch(GameState& state, int r, int c)
 {
-    std::vector<std::pair<int, int> > connected = FindConnected(state, r, c);
-    if ((int)connected.size() < 3) return;
+    std::vector<std::pair<int, int>> connected = FindConnected(state, r, c);
+    if ((int)connected.size() < 3) 
+        return;
 
     ShakeConsoleWindow(10, 200, 10);
     state.score += (int)connected.size() * 10;
@@ -152,19 +159,19 @@ void RenderGrid(const GameState& state)
 {
     int offsetX = GetGridOffsetX();
 
-    for (int r = 0; r < GRID_ROWS; ++r)
+    for (int i = 0; i < GRID_ROWS; ++i)
     {
-        for (int c = 0; c < GRID_COLS; ++c)
+        for (int j = 0; j < GRID_COLS; ++j)
         {
-            GotoXY(offsetX + c * 2, r + 1); 
+            GotoXY(offsetX + j * 2, i + 1); 
 
-            if (state.grid[r][c].color == BubbleColor::NONE)
+            if (state.grid[i][j].color == BubbleColor::NONE)
             {
                 cout << "  ";
                 continue;
             }
 
-            SetColor(ToConsoleColor(state.grid[r][c].color));
+            SetColor(ToConsoleColor(state.grid[i][j].color));
             SetUnicodeMode();
             wcout << L"\u25cf";   
             SetDefaultMode();
@@ -182,18 +189,18 @@ void RenderWall()
 
     SetColor(Color::WHITE);
 
-    for (int x = leftWall; x <= rightWall; ++x)
+    for (int i = leftWall; i <= rightWall; ++i)
     {
-        GotoXY(x, 0);
+        GotoXY(i, 0);
         cout << "бс";
     }
 
-    for (int y = 1; y < HEIGHT; ++y)
+    for (int j = 1; j < HEIGHT; ++j)
     {
-        GotoXY(leftWall, y);
+        GotoXY(leftWall, j);
         cout << "бс";
 
-        GotoXY(rightWall, y);
+        GotoXY(rightWall, j);
         cout << "бс";
     }
 
@@ -215,7 +222,7 @@ void RenderShooter(const GameState& state)
     cout << "Next: ";
     SetColor(ToConsoleColor(state.shooter.nextColor));
     SetUnicodeMode();
-    wcout << L"\u25cf";
+    wcout << L"б▄";
     SetDefaultMode();
     SetColor(Color::WHITE);
 
@@ -230,19 +237,21 @@ void RenderAimLine(const GameState& state)
 
 void RenderBall(const GameState& state)
 {
-    if (!state.ball.isActive) return;
+    if (!state.ball.isActive) 
+        return;
 
     SetColor(ToConsoleColor(state.ball.color));
     SetUnicodeMode();
     GotoXY((int)state.ball.x, (int)state.ball.y);
-    wcout << L"\u25cf";
+    wcout << L"б▄";
     SetDefaultMode();
     SetColor(Color::WHITE);
 }
 
 void DrawAimLineByAngle(const GameState& state, float angle, bool erase)
 {
-    if (angle > 900.0f) return;
+    if (angle > 900.0f) 
+        return;
 
     int offsetX = GetGridOffsetX();
     int leftWall = offsetX - 2;
@@ -276,7 +285,7 @@ void DrawAimLineByAngle(const GameState& state, float angle, bool erase)
 void ClearCell(int x, int y)
 {
     GotoXY(x, y);
-    cout << " ";
+    cout << "  ";
 }
 
 bool InGrid(int r, int c)
@@ -284,32 +293,19 @@ bool InGrid(int r, int c)
     return r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS;
 }
 
-void GetNeighbors(int r, int c, int out[6][2])
+void GetNeighbors(int r, int c, int out[4][2])
 {
-    if (r % 2 == 0)
-    {
-        out[0][0] = r - 1; out[0][1] = c - 1;
-        out[1][0] = r - 1; out[1][1] = c;
-        out[2][0] = r;     out[2][1] = c - 1;
-        out[3][0] = r;     out[3][1] = c + 1;
-        out[4][0] = r + 1; out[4][1] = c - 1;
-        out[5][0] = r + 1; out[5][1] = c;
-    }
-    else
-    {
-        out[0][0] = r - 1; out[0][1] = c;
-        out[1][0] = r - 1; out[1][1] = c + 1;
-        out[2][0] = r;     out[2][1] = c - 1;
-        out[3][0] = r;     out[3][1] = c + 1;
-        out[4][0] = r + 1; out[4][1] = c;
-        out[5][0] = r + 1; out[5][1] = c + 1;
-    }
+    out[0][0] = r - 1; out[0][1] = c;     
+    out[1][0] = r;     out[1][1] = c - 1; 
+    out[2][0] = r;     out[2][1] = c + 1; 
+    out[3][0] = r + 1; out[3][1] = c;     
 }
 
-std::vector<std::pair<int, int> > FindConnected(GameState& state, int startR, int startC)
+std::vector<std::pair<int, int>> FindConnected(GameState& state, int startR, int startC)
 {
     BubbleColor target = state.grid[startR][startC].color;
-    if (target == BubbleColor::NONE) return std::vector<std::pair<int, int> >();
+    if (target == BubbleColor::NONE) 
+        return std::vector<std::pair<int, int> >();
 
     std::vector<std::pair<int, int> > result;
     std::set<std::pair<int, int> >    visited;
@@ -324,15 +320,18 @@ std::vector<std::pair<int, int> > FindConnected(GameState& state, int startR, in
         int r = cur.first, c = cur.second;
         result.push_back(cur);
 
-        int nb[6][2];
+        int nb[4][2];
         GetNeighbors(r, c, nb);
 
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 4; ++i)
         {
             int nr = nb[i][0], nc = nb[i][1];
-            if (!InGrid(nr, nc))                          continue;
-            if (visited.count(std::make_pair(nr, nc)))    continue;
-            if (state.grid[nr][nc].color != target)       continue;
+            if (!InGrid(nr, nc))                          
+                continue;
+            if (visited.count(std::make_pair(nr, nc)))    
+                continue;
+            if (state.grid[nr][nc].color != target)       
+                continue;
 
             visited.insert(std::make_pair(nr, nc));
             q.push(std::make_pair(nr, nc));
@@ -349,8 +348,10 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
 
     for (int c = 0; c < GRID_COLS; ++c)
     {
-        if (state.grid[0][c].color == BubbleColor::NONE) continue;
-        if (attached.count(std::make_pair(0, c)))        continue;
+        if (state.grid[0][c].color == BubbleColor::NONE) 
+            continue;
+        if (attached.count(std::make_pair(0, c)))        
+            continue;
 
         attached.insert(std::make_pair(0, c));
         q.push(std::make_pair(0, c));
@@ -361,15 +362,18 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
         std::pair<int, int> cur = q.front(); q.pop();
         int r = cur.first, c = cur.second;
 
-        int nb[6][2];
+        int nb[4][2];
         GetNeighbors(r, c, nb);
 
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 4; ++i)
         {
             int nr = nb[i][0], nc = nb[i][1];
-            if (!InGrid(nr, nc))                         continue;
-            if (attached.count(std::make_pair(nr, nc)))  continue;
-            if (state.grid[nr][nc].color == BubbleColor::NONE) continue;
+            if (!InGrid(nr, nc))                         
+                continue;
+            if (attached.count(std::make_pair(nr, nc)))  
+                continue;
+            if (state.grid[nr][nc].color == BubbleColor::NONE) 
+                continue;
 
             attached.insert(std::make_pair(nr, nc));
             q.push(std::make_pair(nr, nc));
@@ -377,50 +381,34 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
     }
 
     std::vector<std::pair<int, int> > floating;
-    for (int r = 0; r < GRID_ROWS; ++r)
-        for (int c = 0; c < GRID_COLS; ++c)
-            if (state.grid[r][c].color != BubbleColor::NONE &&
-                !attached.count(std::make_pair(r, c)))
-                floating.push_back(std::make_pair(r, c));
+    for (int i = 0; i < GRID_ROWS; ++i)
+        for (int j = 0; j < GRID_COLS; ++j)
+            if (state.grid[i][j].color != BubbleColor::NONE &&
+                !attached.count(std::make_pair(i, j)))
+                floating.push_back(std::make_pair(i, j));
 
     return floating;
 }
 
 void DropNewRow(GameState& state)
 {
-    for (int c = 0; c < GRID_COLS; ++c)
+    for (int i = 0; i < GRID_COLS; ++i)
     {
-        if (state.grid[GRID_ROWS - 1][c].color != BubbleColor::NONE)
+        if (state.grid[GRID_ROWS - 1][i].color != BubbleColor::NONE)
         {
-            state.curScene = Scene::GAMEOVER;
+            //state.curScene = Scene::GAMEOVER;
             return;
         }
     }
 
-    for (int r = GRID_ROWS - 1; r >= 1; --r)
-        for (int c = 0; c < GRID_COLS; ++c)
-            state.grid[r][c] = state.grid[r - 1][c];
+    for (int i = GRID_ROWS - 1; i >= 1; --i)
+        for (int j = 0; j < GRID_COLS; ++j)
+            state.grid[i][j] = state.grid[i - 1][j];
 
-    for (int c = 0; c < GRID_COLS; ++c)
-        state.grid[0][c].color = (rand() % 5 == 0)
-        ? BubbleColor::NONE
-        : GetRandomBubbleColor();
-
-    int offsetX = GetGridOffsetX();
-    for (int step = 0; step < 4; ++step)
-    {
-        for (int c = 0; c < GRID_COLS; ++c)
-        {
-            GotoXY(offsetX + c * 2, step);
-            cout << "O ";
-        }
-        Sleep(30);
-        for (int c = 0; c < GRID_COLS; ++c)
-        {
-            GotoXY(offsetX + c * 2, step);
-            cout << "  ";
-        }
-    }
+    for (int i = 0; i < GRID_COLS; ++i)
+        state.grid[0][i].color = (rand() % 5 == 0)
+                                            ? BubbleColor::NONE
+                                            : GetRandomBubbleColor();
 }
 
 int GetGridOffsetX()
@@ -436,19 +424,19 @@ int GridToScreenX(int col)
 
 int GridToScreenY(int row)
 {
-    return row + 1;
+    return row + 1  ;
 }
 
 bool CheckBubbleCollision(const GameState& state)
 {
-    for (int r = 0; r < GRID_ROWS; ++r)
+    for (int i = 0; i < GRID_ROWS; ++i)
     {
-        for (int c = 0; c < GRID_COLS; ++c)
+        for (int j = 0; j < GRID_COLS; ++j)
         {
-            if (state.grid[r][c].color == BubbleColor::NONE) continue;
+            if (state.grid[i][j].color == BubbleColor::NONE) continue;
 
-            float dx = state.ball.x - GridToScreenX(c);
-            float dy = state.ball.y - GridToScreenY(r);
+            float dx = state.ball.x - GridToScreenX(j);
+            float dy = state.ball.y - GridToScreenY(i);
 
             if (dx * dx + dy * dy < 4.0f)
                 return true;
@@ -463,16 +451,18 @@ void SnapBallToGrid(GameState& state)
     int   bestCol = 0;
     float bestDist = 1e30f;
 
-    for (int r = 0; r < GRID_ROWS; ++r)
+    for (int i = 0; i < GRID_ROWS; ++i)
     {
-        for (int c = 0; c < GRID_COLS; ++c)
+        for (int j = 0; j < GRID_COLS; ++j)
         {
-            if (state.grid[r][c].color != BubbleColor::NONE) continue;
+            if (state.grid[i][j].color != BubbleColor::NONE) 
+                continue;
 
             bool hasNeighbor = false;
-            int nb[6][2];
-            GetNeighbors(r, c, nb);
-            for (int i = 0; i < 6; ++i)
+            int nb[4][2];
+            GetNeighbors(i, j, nb);
+
+            for (int i = 0; i < 4; ++i)
             {
                 int nr = nb[i][0], nc = nb[i][1];
                 if (InGrid(nr, nc) && state.grid[nr][nc].color != BubbleColor::NONE)
@@ -481,17 +471,18 @@ void SnapBallToGrid(GameState& state)
                     break;
                 }
             }
-            if (!hasNeighbor) continue;
+            if (!hasNeighbor) 
+                continue;
 
-            float dx = state.ball.x - GridToScreenX(c);
-            float dy = state.ball.y - GridToScreenY(r);
+            float dx = state.ball.x - GridToScreenX(j);
+            float dy = state.ball.y - GridToScreenY(i);
             float dist = dx * dx + dy * dy;
 
             if (dist < bestDist)
             {
                 bestDist = dist;
-                bestRow = r;
-                bestCol = c;
+                bestRow = i;
+                bestCol = j;
             }
         }
     }
@@ -513,12 +504,12 @@ Color ToConsoleColor(BubbleColor color)
 {
     switch (color)
     {
-    case BubbleColor::RED:    return Color::LIGHT_RED;
-    case BubbleColor::GREEN:  return Color::LIGHT_GREEN;
-    case BubbleColor::BLUE:   return Color::LIGHT_BLUE;
-    case BubbleColor::YELLOW: return Color::LIGHT_YELLOW;
-    case BubbleColor::VIOLET: return Color::LIGHT_VIOLET;
-    case BubbleColor::CYAN:   return Color::CYAN;
-    default:                  return Color::WHITE;
+        case BubbleColor::RED: return Color::LIGHT_RED;
+        case BubbleColor::GREEN: return Color::LIGHT_GREEN;
+        case BubbleColor::BLUE: return Color::LIGHT_BLUE;
+        case BubbleColor::YELLOW: return Color::LIGHT_YELLOW;
+        case BubbleColor::VIOLET: return Color::LIGHT_VIOLET;
+        case BubbleColor::CYAN: return Color::CYAN;
+        default: return Color::WHITE;
     }
 }
