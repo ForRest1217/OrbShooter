@@ -2,6 +2,7 @@
 #include "Console.h"
 #include "SoundManager.h"
 #include "InGameScene.h"
+#include "TitleScene.h"
 #include <cstdlib>
 #include <ctime>
 
@@ -35,11 +36,11 @@ void Update(GameState& state)
     {
         case Scene::TITLE:
             if (sceneChanged)
-                // InitTitle(state);
-            // UpdateTitle(state);
+                 InitTitle(state);
+             UpdateTitle(state);
             break;
         case Scene::INFO:
-            // UpdateInfo(state);
+             UpdateInfo(state);
             break;
         case Scene::INGAME:
             if (sceneChanged)
@@ -61,10 +62,10 @@ void Render(const GameState& state)
     switch (state.curScene)
     {
         case Scene::TITLE:
-            // RenderTitle(state);
+            RenderTitle(state);
             break;
         case Scene::INFO:
-            // RenderInfo(state);
+             RenderInfo(state);
             break;
         case Scene::INGAME:
             RenderInGame(state);
