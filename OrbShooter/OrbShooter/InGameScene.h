@@ -13,6 +13,7 @@ void UpdateInGame(GameState& state);
 void UpdateShooter(GameState& state);
 void ShootBall(GameState& state);
 void UpdateBall(GameState& state);
+void HoldBall(GameState& state);
 void ProcessMatch(GameState& state, int r, int c);
 void DropNewRow(GameState& state);
 
@@ -21,7 +22,8 @@ void RenderWall();
 void RenderShooter(const GameState& state);
 void RenderAimLine(const GameState& state);
 void RenderBall(const GameState& state);
-void DrawAimLineByAngle(const GameState& state, float angle, bool erase);
+void RenderAimLineByAngle(const GameState& state, float angle, bool erase);
+wchar_t GetAimChar(float angle);
 void ClearCell(int x, int y);
 void RenderGrid(const GameState& state);
 

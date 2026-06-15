@@ -1,4 +1,4 @@
-#include "InGameScene.h"
+﻿#include "InGameScene.h"
 
 void InitInGame(GameState& state)
 {
@@ -13,12 +13,14 @@ void InitInGame(GameState& state)
     state.shooter.y = HEIGHT - 5;
     state.shooter.angle = 0.0f;
     state.shooter.prevAngle = 999.0f;
+    state.shooter.currentColor = GetRandomBubbleColor();
     state.shooter.nextColor = GetRandomBubbleColor();
 
     state.ball.isActive = false;
     state.ball.isMoving = false;
 
     RenderWall();
+    RenderGrid(state);
     RenderShooter(state);
 }
 
@@ -29,6 +31,9 @@ void UpdateInGame(GameState& state)
 
     if (GetKeyDown(VK_SPACE))
         ShootBall(state);
+
+    if (GetKeyDown('C'))          
+        HoldBall(state);
 
     UpdateBall(state);
 
@@ -57,19 +62,28 @@ void UpdateShooter(GameState& state)
 
 void ShootBall(GameState& state)
 {
-    if (state.ball.isMoving) 
+    if (state.ball.isMoving)
         return;
+
+    RenderAimLineByAngle(state, state.shooter.angle, true);
 
     float rad = state.shooter.angle * 3.141592f / 180.0f;
 
     state.ball.x = (float)state.shooter.x;
     state.ball.y = (float)state.shooter.y - 1;
+
     state.ball.prevX = state.ball.x;
     state.ball.prevY = state.ball.y;
+
     state.ball.dirX = sin(rad);
     state.ball.dirY = -cos(rad);
-    state.ball.speed = 0.7f;
-    state.ball.color = state.shooter.nextColor;
+
+    state.ball.speed = 0.05f;
+
+    state.ball.color = state.shooter.currentColor; 
+    state.shooter.currentColor = state.shooter.nextColor;
+    state.shooter.nextColor = GetRandomBubbleColor();
+
     state.ball.isActive = true;
     state.ball.isMoving = true;
 
@@ -109,10 +123,17 @@ void UpdateBall(GameState& state)
         col = max(0, min(col, GRID_COLS - 2));
 
         state.grid[0][col].color = state.ball.color;
+
+        RenderGrid(state);
+
         state.ball.isMoving = false;
         state.ball.isActive = false;
 
         ProcessMatch(state, 0, col);
+
+        state.shooter.prevAngle = 999.0f;
+        RenderAimLine(state);
+
         return;
     }
 
@@ -120,6 +141,32 @@ void UpdateBall(GameState& state)
     {
         SnapBallToGrid(state);
     }
+}
+
+void HoldBall(GameState& state)
+{
+    if (state.ball.isMoving)
+        return;
+
+    RenderAimLineByAngle(state, state.shooter.angle, true);
+
+    if (!state.shooter.hasHold)
+    {
+        state.shooter.holdColor = state.shooter.currentColor;
+        state.shooter.currentColor = state.shooter.nextColor;
+        state.shooter.nextColor = GetRandomBubbleColor();
+        state.shooter.hasHold = true;
+    }
+    else
+    {
+        BubbleColor temp = state.shooter.currentColor;
+        state.shooter.currentColor = state.shooter.holdColor;
+        state.shooter.holdColor = temp;
+    }
+
+    state.shooter.prevAngle = 999.0f;
+    RenderShooter(state);
+    RenderAimLine(state);
 }
 
 void ProcessMatch(GameState& state, int r, int c)
@@ -139,20 +186,24 @@ void ProcessMatch(GameState& state, int r, int c)
 
     for (int i = 0; i < (int)floating.size(); ++i)
         state.grid[floating[i].first][floating[i].second].color = BubbleColor::NONE;
+
+    RenderGrid(state);
 }
 
 
 void RenderInGame(const GameState& state)
 {
-    DrawAimLineByAngle(state, state.shooter.prevAngle, true);
+    if (state.shooter.prevAngle != state.shooter.angle)
+    {
+        if (!state.ball.isMoving)
+        {
+            RenderAimLineByAngle(state, state.shooter.prevAngle, true);
+            RenderAimLine(state);
+        }
+    }
 
-    if (state.ball.isActive || state.ball.isMoving)
-        ClearCell((int)state.ball.prevX, (int)state.ball.prevY);
-
-    RenderAimLine(state);
     RenderBall(state);
     RenderShooter(state);
-    RenderGrid(state);
 }
 
 void RenderGrid(const GameState& state)
@@ -167,16 +218,21 @@ void RenderGrid(const GameState& state)
 
             if (state.grid[i][j].color == BubbleColor::NONE)
             {
-                cout << "  ";
+                if (j == GRID_COLS - 1)
+                    cout << " ";
+                else
+                    cout << "  ";
                 continue;
             }
 
             SetColor(ToConsoleColor(state.grid[i][j].color));
             SetUnicodeMode();
-            wcout << L"\u25cf";   
+            wcout << L"●";   
             SetDefaultMode();
             SetColor();
-            cout << " ";
+
+            if (j < GRID_COLS - 1)
+                cout << " ";
         }
     }
 }
@@ -189,19 +245,19 @@ void RenderWall()
 
     SetColor(Color::WHITE);
 
-    for (int i = leftWall; i <= rightWall; ++i)
+    for (int i = leftWall; i <= rightWall; i+=2)
     {
         GotoXY(i, 0);
-        cout << "��";
+        cout << "■";
     }
 
     for (int j = 1; j < HEIGHT; ++j)
     {
         GotoXY(leftWall, j);
-        cout << "��";
+        cout << "■";
 
         GotoXY(rightWall, j);
-        cout << "��";
+        cout << "■";
     }
 
     SetColor(Color::WHITE);
@@ -209,22 +265,42 @@ void RenderWall()
 
 void RenderShooter(const GameState& state)
 {
-    SetColor(Color::WHITE);
-
+    //현재공
+    SetColor(ToConsoleColor(state.shooter.currentColor)); 
+    SetUnicodeMode();
     GotoXY(state.shooter.x, state.shooter.y);
-    cout << "^";
+    wcout << L"●";   
+    SetDefaultMode();
+    SetColor();
 
     GotoXY(2, HEIGHT - 3); cout << "LEFT/RIGHT : Aim          ";
     GotoXY(2, HEIGHT - 2); cout << "SPACE      : Shoot        ";
 
+    //다음공
     GotoXY(26, HEIGHT - 2);
     SetColor(Color::WHITE);
     cout << "Next: ";
     SetColor(ToConsoleColor(state.shooter.nextColor));
     SetUnicodeMode();
-    wcout << L"��";
+    wcout << L"●";
     SetDefaultMode();
     SetColor(Color::WHITE);
+
+    //홀드한공
+    int holdX = WIDTH - 18;
+    GotoXY(holdX, HEIGHT - 2);
+    SetColor(Color::WHITE);
+    cout << "Hold: ";
+    if (state.shooter.hasHold)
+    {
+        SetColor(ToConsoleColor(state.shooter.holdColor));
+        SetUnicodeMode();
+        wcout << L"●";
+        SetDefaultMode();
+    }
+    else
+        cout << "-";
+    SetColor();
 
     GotoXY(2, HEIGHT - 4);
     cout << "Score: " << state.score << "   ";
@@ -232,7 +308,7 @@ void RenderShooter(const GameState& state)
 
 void RenderAimLine(const GameState& state)
 {
-    DrawAimLineByAngle(state, state.shooter.angle, false);
+    RenderAimLineByAngle(state, state.shooter.angle, false);
 }
 
 void RenderBall(const GameState& state)
@@ -240,17 +316,23 @@ void RenderBall(const GameState& state)
     if (!state.ball.isActive) 
         return;
 
+    if ((int)state.ball.prevX != (int)state.ball.x ||
+        (int)state.ball.prevY != (int)state.ball.y)
+    {
+        ClearCell((int)state.ball.prevX, (int)state.ball.prevY);
+    }
+
     SetColor(ToConsoleColor(state.ball.color));
+    GotoXY((int)state.ball.x,(int)state.ball.y);
+
     SetUnicodeMode();
-    GotoXY((int)state.ball.x, (int)state.ball.y);
-    wcout << L"��";
+    wcout << L"●";
     SetDefaultMode();
-    SetColor(Color::WHITE);
 }
 
-void DrawAimLineByAngle(const GameState& state, float angle, bool erase)
+void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
 {
-    if (angle > 900.0f) 
+    if (angle > 900.0f)
         return;
 
     int offsetX = GetGridOffsetX();
@@ -258,29 +340,66 @@ void DrawAimLineByAngle(const GameState& state, float angle, bool erase)
     int rightWall = offsetX + GRID_COLS * 2;
 
     float rad = angle * 3.141592f / 180.0f;
-    float dirX = sin(rad);
-    float dirY = -cos(rad);
 
-    float x = (float)state.shooter.x;
-    float y = (float)state.shooter.y;
+    float simX = (float)state.shooter.x;
+    float simY = (float)state.shooter.y;
+
+    float simDirX = sin(rad);
+    float simDirY = -cos(rad);
 
     SetColor(erase ? Color::BLACK : Color::GRAY);
 
-    for (int i = 1; i <= 30; ++i)
+    for (int i = 0; i < 60; ++i)
     {
-        int drawX = (int)(x + dirX * i);
-        int drawY = (int)(y + dirY * i);
+        simX += simDirX;
+        simY += simDirY;
 
-        if (drawX <= leftWall + 1 || drawX >= rightWall - 1 || drawY <= 1)
+        if (simX <= leftWall + 2)
+        {
+            simX = leftWall + 2;
+            simDirX *= -1;
+        }
+
+        if (simX >= rightWall - 2)
+        {
+            simX = rightWall - 2;
+            simDirX *= -1;
+        }
+
+        int drawX = (int)simX;
+        int drawY = (int)simY;
+
+        if (drawY <= 1)
             break;
 
+        if (state.ball.isActive)
+            if ((int)state.ball.x == drawX && (int)state.ball.y == drawY)
+                continue;
+
+        float currentAngle = atan2(simDirX, -simDirY)* 180.0f  / 3.141592f;
+        wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
         GotoXY(drawX, drawY);
-        cout << (erase ? " " : ".");
+        SetUnicodeMode();
+        wcout << aimChar;
+        SetDefaultMode();
     }
 
-    SetColor(Color::WHITE);
+    SetColor();
 }
 
+wchar_t GetAimChar(float angle)
+{
+    if (angle < -45) 
+        return L'⋱';
+    if (angle < -15) 
+        return L'⋱';
+    if (angle < 15)  
+        return L'│';
+    if (angle < 45)  
+        return L'⋰';
+
+    return L'⋰';
+}
 
 void ClearCell(int x, int y)
 {
@@ -409,6 +528,8 @@ void DropNewRow(GameState& state)
         state.grid[0][i].color = (rand() % 5 == 0)
                                             ? BubbleColor::NONE
                                             : GetRandomBubbleColor();
+
+    RenderGrid(state);
 }
 
 int GetGridOffsetX()
@@ -488,10 +609,16 @@ void SnapBallToGrid(GameState& state)
     }
 
     state.grid[bestRow][bestCol].color = state.ball.color;
+
+    RenderGrid(state);
+
     state.ball.isMoving = false;
     state.ball.isActive = false;
 
     ProcessMatch(state, bestRow, bestCol);
+
+    state.shooter.prevAngle = 999.0f;
+    RenderAimLine(state);
 }
 
 BubbleColor GetRandomBubbleColor()

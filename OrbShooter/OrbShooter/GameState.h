@@ -27,12 +27,16 @@ struct Ball
 
 struct Shooter
 {
-    int   x = WIDTH / 2;
-    int   y = HEIGHT - 5;
+    int x = WIDTH / 2;
+    int y = HEIGHT - 5;
     float angle = 0.0f;
     float prevAngle = 999.0f;   
 
+    BubbleColor currentColor = BubbleColor::RED;
     BubbleColor nextColor = BubbleColor::RED;
+
+    BubbleColor holdColor = BubbleColor::NONE; 
+    bool hasHold = false;
 };
 
 struct Bubble
@@ -50,7 +54,7 @@ struct GameState
     Ball    ball;
     Shooter shooter;
 
-    Bubble     grid[GRID_ROWS][GRID_COLS];
+    Bubble grid[GRID_ROWS][GRID_COLS];
     ULONGLONG  lastDropTick = 0;
-    int        score = 0;
+    int score = 0;
 };
