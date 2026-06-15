@@ -1,4 +1,5 @@
 ﻿#include "TitleScene.h"
+#include <utility>
 
 static void DrawCenterText(int y, const string& text, Color color = Color::WHITE)
 {
@@ -25,6 +26,69 @@ void InitTitle(GameState& state)
 {
 	system("cls");
 	state.curMenu = Menu::START;
+}
+static std::pair<int, int> GetMouseConsolePos()
+{
+	POINT mousePos;
+	GetCursorPos(&mousePos);
+
+	HWND console = GetConsoleWindow();
+	ScreenToClient(console, &mousePos);
+
+	HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_FONT_INFO fontInfo;
+	GetCurrentConsoleFont(output, FALSE, &fontInfo);
+
+	COORD fontSize = GetConsoleFontSize(output, fontInfo.nFont);
+
+	return {
+		mousePos.x / fontSize.X,
+		mousePos.y / fontSize.Y
+	};
+}
+
+static bool GetMouseDown()
+{
+	static bool prevClick = false;
+
+	bool curClick = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+	bool result = curClick && !prevClick;
+
+	prevClick = curClick;
+
+	return result;
+}
+
+static bool IsMouseInArea(std::pair<int, int> start, std::pair<int, int> end)
+{
+	std::pair<int, int> pos = GetMouseConsolePos();
+
+	int x = pos.first;
+	int y = pos.second;
+
+	return
+		x >= start.first &&
+		x <= end.first &&
+		y >= start.second &&
+		y <= end.second;
+}
+static void SelectTitleMenu(GameState& state)
+{
+	switch (state.curMenu)
+	{
+	case Menu::START:
+		state.curScene = Scene::INGAME;
+		break;
+
+	case Menu::INFO:
+		state.curScene = Scene::INFO;
+		break;
+
+	case Menu::QUIT:
+		state.isRunning = false;
+		break;
+	}
 }
 
 void UpdateTitle(GameState& state)
@@ -61,20 +125,30 @@ void UpdateTitle(GameState& state)
 		}
 	}
 
-	if (GetKeyDown(VK_RETURN) || GetKeyDown(VK_SPACE))
+	int menuX = WIDTH / 2 - 5;
+
+	std::pair<int, int> startArea = { menuX, 20 };
+	std::pair<int, int> infoArea = { menuX, 22 };
+	std::pair<int, int> quitArea = { menuX, 24 };
+
+	if (IsMouseInArea(startArea, { menuX + 10, 20 }))
 	{
-		switch (state.curMenu)
-		{
-		case Menu::START:
-			state.curScene = Scene::INGAME;
-			break;
-		case Menu::INFO:
-			state.curScene = Scene::INFO;
-			break;
-		case Menu::QUIT:
-			state.isRunning = false;
-			break;
-		}
+		state.curMenu = Menu::START;
+	}
+
+	if (IsMouseInArea(infoArea, { menuX + 10, 22 }))
+	{
+		state.curMenu = Menu::INFO;
+	}
+
+	if (IsMouseInArea(quitArea, { menuX + 10, 24 }))
+	{
+		state.curMenu = Menu::QUIT;
+	}
+
+	if (GetKeyDown(VK_RETURN) || GetKeyDown(VK_SPACE) || GetMouseDown())
+	{
+		SelectTitleMenu(state);
 	}
 }
 
