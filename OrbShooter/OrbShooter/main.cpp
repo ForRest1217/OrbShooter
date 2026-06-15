@@ -9,7 +9,7 @@ int main()
 	SetCursorVisible(false);
 
 	//Å×½ºÆ®
-	state.curScene = Scene::INGAME;
+	state.curScene = Scene::TITLE;
 
 	while (state.isRunning)
 	{

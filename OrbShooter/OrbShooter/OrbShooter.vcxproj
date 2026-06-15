@@ -132,6 +132,7 @@
     <ClCompile Include="InGameScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SoundManager.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="GameState.h" />
     <ClInclude Include="InGameScene.h" />
     <ClInclude Include="SoundManager.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
