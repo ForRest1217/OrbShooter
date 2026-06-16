@@ -36,8 +36,13 @@ int  GetGridOffsetX();
 int  GridToScreenX(int col);
 int  GridToScreenY(int row);
 
-bool CheckBubbleCollision(const GameState& state);
-void SnapBallToGrid(GameState& state);
+bool CheckBubbleCollision(const GameState& state, int& hitR, int& hitC);
+void SnapBallToGrid(GameState& state, int hitR, int hitC);
 
 BubbleColor GetRandomBubbleColor();
 Color       ToConsoleColor(BubbleColor color);
+
+BubbleType GetRandomBubbleType();
+const wchar_t* GetBubbleShape(BubbleType type);
+void ClearBubbleAt(GameState& state, int r, int c);
+void ExplodeAround(GameState& state, int r, int c);

@@ -6,7 +6,12 @@
 constexpr int WIDTH = 100;
 constexpr int HEIGHT = 40;
 constexpr int GRID_COLS = 13;
-constexpr int GRID_ROWS = 12;
+
+constexpr int SHOOTER_START_Y = HEIGHT - 5;
+constexpr int GAMEOVER_Y = SHOOTER_START_Y + 1;
+
+constexpr int GRID_ROWS = GAMEOVER_Y;
+
 constexpr int DROP_SEC = 5;
 
 struct Ball
@@ -21,6 +26,8 @@ struct Ball
     float speed = 0.7f;
 
     BubbleColor color = BubbleColor::RED;
+    BubbleType type = BubbleType::NORMAL;
+
     bool isMoving = false;
     bool isActive = false;  
 };
@@ -28,20 +35,26 @@ struct Ball
 struct Shooter
 {
     int x = WIDTH / 2;
-    int y = HEIGHT - 5;
+    int y = SHOOTER_START_Y;
     float angle = 0.0f;
     float prevAngle = 999.0f;   
 
     BubbleColor currentColor = BubbleColor::RED;
     BubbleColor nextColor = BubbleColor::RED;
 
-    BubbleColor holdColor = BubbleColor::NONE; 
+    BubbleType currentType = BubbleType::NORMAL;
+    BubbleType nextType = BubbleType::NORMAL;
+
+    BubbleColor holdColor = BubbleColor::NONE;
+    BubbleType holdType = BubbleType::NORMAL;
+
     bool hasHold = false;
 };
 
 struct Bubble
 {
     BubbleColor color = BubbleColor::NONE;
+    BubbleType type = BubbleType::NORMAL;
 };
 
 struct GameState

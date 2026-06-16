@@ -19,3 +19,8 @@ enum class BubbleColor
 	RED, GREEN, BLUE, YELLOW, VIOLET, CYAN,
 	COUNT
 };
+enum class BubbleType
+{
+	NORMAL,
+	BOMB
+};

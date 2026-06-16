@@ -3,21 +3,35 @@
 void InitInGame(GameState& state)
 {
     for (int i = 0; i < GRID_ROWS; ++i)
+    {
         for (int j = 0; j < GRID_COLS; ++j)
+        {
             state.grid[i][j].color = BubbleColor::NONE;
+            state.grid[i][j].type = BubbleType::NORMAL;
+        }
+    }
 
     state.lastDropTick = GetTickCount64();
     state.score = 0;
 
     state.shooter.x = WIDTH / 2;
-    state.shooter.y = HEIGHT - 5;
+    state.shooter.y = SHOOTER_START_Y;
     state.shooter.angle = 0.0f;
     state.shooter.prevAngle = 999.0f;
+
     state.shooter.currentColor = GetRandomBubbleColor();
     state.shooter.nextColor = GetRandomBubbleColor();
 
+    state.shooter.currentType = GetRandomBubbleType();
+    state.shooter.nextType = GetRandomBubbleType();
+
     state.ball.isActive = false;
     state.ball.isMoving = false;
+
+    for (int i = 0; i < 3; i++)
+    {
+        DropNewRow(state);
+    }
 
     RenderWall();
     RenderGrid(state);
@@ -80,14 +94,18 @@ void ShootBall(GameState& state)
 
     state.ball.speed = 0.05f;
 
-    state.ball.color = state.shooter.currentColor; 
+
+    state.ball.color = state.shooter.currentColor;
     state.shooter.currentColor = state.shooter.nextColor;
     state.shooter.nextColor = GetRandomBubbleColor();
 
+    state.ball.type = state.shooter.currentType;
+    state.shooter.currentType = state.shooter.nextType;
+    state.shooter.nextType = GetRandomBubbleType();
+
+
     state.ball.isActive = true;
     state.ball.isMoving = true;
-
-    state.shooter.nextColor = GetRandomBubbleColor();
 }
 
 void UpdateBall(GameState& state)
@@ -119,10 +137,14 @@ void UpdateBall(GameState& state)
 
     if (state.ball.y <= 2)
     {
+        ClearCell((int)state.ball.prevX, (int)state.ball.prevY);
+        ClearCell((int)state.ball.x, (int)state.ball.y);
+
         int col = (int)((state.ball.x - GetGridOffsetX()) / 2.0f);
         col = max(0, min(col, GRID_COLS - 2));
 
         state.grid[0][col].color = state.ball.color;
+        state.grid[0][col].type = state.ball.type;
 
         RenderGrid(state);
 
@@ -137,9 +159,11 @@ void UpdateBall(GameState& state)
         return;
     }
 
-    if (CheckBubbleCollision(state))
+    int hitR;
+    int hitC;
+    if (CheckBubbleCollision(state, hitR, hitC))
     {
-        SnapBallToGrid(state);
+        SnapBallToGrid(state, hitR, hitC);
     }
 }
 
@@ -155,13 +179,22 @@ void HoldBall(GameState& state)
         state.shooter.holdColor = state.shooter.currentColor;
         state.shooter.currentColor = state.shooter.nextColor;
         state.shooter.nextColor = GetRandomBubbleColor();
+
+        state.shooter.holdType = state.shooter.currentType;
+        state.shooter.currentType = state.shooter.nextType;
+        state.shooter.nextType = GetRandomBubbleType();
+
         state.shooter.hasHold = true;
     }
     else
     {
-        BubbleColor temp = state.shooter.currentColor;
+        BubbleColor tempColor = state.shooter.currentColor;
         state.shooter.currentColor = state.shooter.holdColor;
-        state.shooter.holdColor = temp;
+        state.shooter.holdColor = tempColor;
+
+        BubbleType tempType = state.shooter.currentType;
+        state.shooter.currentType = state.shooter.holdType;
+        state.shooter.holdType = tempType;
     }
 
     state.shooter.prevAngle = 999.0f;
@@ -172,20 +205,35 @@ void HoldBall(GameState& state)
 void ProcessMatch(GameState& state, int r, int c)
 {
     std::vector<std::pair<int, int>> connected = FindConnected(state, r, c);
-    if ((int)connected.size() < 3) 
+
+    if ((int)connected.size() < 3)
         return;
+
+    std::vector<std::pair<int, int>> bombs;
 
     ShakeConsoleWindow(10, 200, 10);
     state.score += (int)connected.size() * 10;
 
     for (int i = 0; i < (int)connected.size(); ++i)
-        state.grid[connected[i].first][connected[i].second].color = BubbleColor::NONE;
+    {
+        int br = connected[i].first;
+        int bc = connected[i].second;
 
-    std::vector<std::pair<int, int> > floating = FindFloating(state);
+        if (state.grid[br][bc].type == BubbleType::BOMB)
+            bombs.push_back(std::make_pair(br, bc));
+    }
+
+    for (int i = 0; i < (int)connected.size(); ++i)
+        ClearBubbleAt(state, connected[i].first, connected[i].second);
+
+    for (int i = 0; i < (int)bombs.size(); ++i)
+        ExplodeAround(state, bombs[i].first, bombs[i].second);
+
+    std::vector<std::pair<int, int>> floating = FindFloating(state);
     state.score += (int)floating.size() * 5;
 
     for (int i = 0; i < (int)floating.size(); ++i)
-        state.grid[floating[i].first][floating[i].second].color = BubbleColor::NONE;
+        ClearBubbleAt(state, floating[i].first, floating[i].second);
 
     RenderGrid(state);
 }
@@ -227,7 +275,7 @@ void RenderGrid(const GameState& state)
 
             SetColor(ToConsoleColor(state.grid[i][j].color));
             SetUnicodeMode();
-            wcout << L"●";   
+            wcout << GetBubbleShape(state.grid[i][j].type);
             SetDefaultMode();
             SetColor();
 
@@ -269,7 +317,7 @@ void RenderShooter(const GameState& state)
     SetColor(ToConsoleColor(state.shooter.currentColor)); 
     SetUnicodeMode();
     GotoXY(state.shooter.x, state.shooter.y);
-    wcout << L"●";   
+    wcout << GetBubbleShape(state.shooter.currentType);
     SetDefaultMode();
     SetColor();
 
@@ -282,7 +330,7 @@ void RenderShooter(const GameState& state)
     cout << "Next: ";
     SetColor(ToConsoleColor(state.shooter.nextColor));
     SetUnicodeMode();
-    wcout << L"●";
+    wcout << GetBubbleShape(state.shooter.nextType);
     SetDefaultMode();
     SetColor(Color::WHITE);
 
@@ -295,7 +343,7 @@ void RenderShooter(const GameState& state)
     {
         SetColor(ToConsoleColor(state.shooter.holdColor));
         SetUnicodeMode();
-        wcout << L"●";
+        wcout << GetBubbleShape(state.shooter.holdType);
         SetDefaultMode();
     }
     else
@@ -326,7 +374,7 @@ void RenderBall(const GameState& state)
     GotoXY((int)state.ball.x,(int)state.ball.y);
 
     SetUnicodeMode();
-    wcout << L"●";
+    wcout << GetBubbleShape(state.ball.type);
     SetDefaultMode();
 }
 
@@ -347,7 +395,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
     float simDirX = sin(rad);
     float simDirY = -cos(rad);
 
-    SetColor(erase ? Color::BLACK : Color::GRAY);
+    SetColor(erase ? Color::BLACK : Color::WHITE);
 
     for (int i = 0; i < 60; ++i)
     {
@@ -372,11 +420,28 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
         if (drawY <= 1)
             break;
 
-        if (state.ball.isActive)
-            if ((int)state.ball.x == drawX && (int)state.ball.y == drawY)
-                continue;
+        int row = drawY - 1;
+        int col = (drawX - offsetX) / 2;
 
-        float currentAngle = atan2(simDirX, -simDirY)* 180.0f  / 3.141592f;
+        if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS &&
+            state.grid[row][col].color != BubbleColor::NONE)
+        {
+            if (erase)
+            {
+                GotoXY(GridToScreenX(col), GridToScreenY(row));
+                SetColor(ToConsoleColor(state.grid[row][col].color));
+                SetUnicodeMode();
+                wcout << GetBubbleShape(state.grid[row][col].type);
+                SetDefaultMode();
+               SetColor();
+            }
+            else
+                break;
+
+            continue;
+        }
+
+        float currentAngle = atan2(simDirX, -simDirY) * 180.0f / 3.141592f;
         wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
         GotoXY(drawX, drawY);
         SetUnicodeMode();
@@ -412,12 +477,36 @@ bool InGrid(int r, int c)
     return r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS;
 }
 
-void GetNeighbors(int r, int c, int out[4][2])
+void GetNeighbors(int r, int c, int out[6][2])
 {
-    out[0][0] = r - 1; out[0][1] = c;     
-    out[1][0] = r;     out[1][1] = c - 1; 
-    out[2][0] = r;     out[2][1] = c + 1; 
-    out[3][0] = r + 1; out[3][1] = c;     
+    out[0][0] = r;
+    out[0][1] = c - 1;
+
+    out[1][0] = r;
+    out[1][1] = c + 1;
+
+    out[2][0] = r - 1;
+    out[3][0] = r - 1;
+
+    out[4][0] = r + 1;
+    out[5][0] = r + 1;
+
+    if (r % 2 == 0)
+    {
+        out[2][1] = c - 1;
+        out[3][1] = c;
+
+        out[4][1] = c - 1;
+        out[5][1] = c;
+    }
+    else
+    {
+        out[2][1] = c;
+        out[3][1] = c + 1;
+
+        out[4][1] = c;
+        out[5][1] = c + 1;
+    }
 }
 
 std::vector<std::pair<int, int>> FindConnected(GameState& state, int startR, int startC)
@@ -439,10 +528,10 @@ std::vector<std::pair<int, int>> FindConnected(GameState& state, int startR, int
         int r = cur.first, c = cur.second;
         result.push_back(cur);
 
-        int nb[4][2];
+        int nb[6][2];
         GetNeighbors(r, c, nb);
 
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             int nr = nb[i][0], nc = nb[i][1];
             if (!InGrid(nr, nc))                          
@@ -481,10 +570,10 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
         std::pair<int, int> cur = q.front(); q.pop();
         int r = cur.first, c = cur.second;
 
-        int nb[4][2];
+        int nb[6][2];
         GetNeighbors(r, c, nb);
 
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             int nr = nb[i][0], nc = nb[i][1];
             if (!InGrid(nr, nc))                         
@@ -525,9 +614,18 @@ void DropNewRow(GameState& state)
             state.grid[i][j] = state.grid[i - 1][j];
 
     for (int i = 0; i < GRID_COLS; ++i)
-        state.grid[0][i].color = (rand() % 5 == 0)
-                                            ? BubbleColor::NONE
-                                            : GetRandomBubbleColor();
+    {
+        if (rand() % 5 == 0)
+        {
+            state.grid[0][i].color = BubbleColor::NONE;
+            state.grid[0][i].type = BubbleType::NORMAL;
+        }
+        else
+        {
+            state.grid[0][i].color = GetRandomBubbleColor();
+            state.grid[0][i].type = BubbleType::NORMAL;
+        }
+    }
 
     RenderGrid(state);
 }
@@ -541,58 +639,25 @@ int GetGridOffsetX()
 int GridToScreenX(int col)
 {
     return GetGridOffsetX() + col * 2;
-}
+}   
 
 int GridToScreenY(int row)
 {
     return row + 1  ;
 }
 
-bool CheckBubbleCollision(const GameState& state)
+bool CheckBubbleCollision(const GameState& state, int& hitR, int& hitC)
 {
-    for (int i = 0; i < GRID_ROWS; ++i)
-    {
-        for (int j = 0; j < GRID_COLS; ++j)
-        {
-            if (state.grid[i][j].color == BubbleColor::NONE) continue;
+    hitR = -1;
+    hitC = -1;
 
-            float dx = state.ball.x - GridToScreenX(j);
-            float dy = state.ball.y - GridToScreenY(i);
-
-            if (dx * dx + dy * dy < 4.0f)
-                return true;
-        }
-    }
-    return false;
-}
-
-void SnapBallToGrid(GameState& state)
-{
-    int   bestRow = 0;
-    int   bestCol = 0;
-    float bestDist = 1e30f;
+    float bestDist = 4.0f;
 
     for (int i = 0; i < GRID_ROWS; ++i)
     {
         for (int j = 0; j < GRID_COLS; ++j)
         {
-            if (state.grid[i][j].color != BubbleColor::NONE) 
-                continue;
-
-            bool hasNeighbor = false;
-            int nb[4][2];
-            GetNeighbors(i, j, nb);
-
-            for (int i = 0; i < 4; ++i)
-            {
-                int nr = nb[i][0], nc = nb[i][1];
-                if (InGrid(nr, nc) && state.grid[nr][nc].color != BubbleColor::NONE)
-                {
-                    hasNeighbor = true;
-                    break;
-                }
-            }
-            if (!hasNeighbor) 
+            if (state.grid[i][j].color == BubbleColor::NONE)
                 continue;
 
             float dx = state.ball.x - GridToScreenX(j);
@@ -602,19 +667,73 @@ void SnapBallToGrid(GameState& state)
             if (dist < bestDist)
             {
                 bestDist = dist;
-                bestRow = i;
-                bestCol = j;
+                hitR = i;
+                hitC = j;
             }
         }
     }
 
-    state.grid[bestRow][bestCol].color = state.ball.color;
+    return hitR != -1;
+}
 
-    RenderGrid(state);
+void SnapBallToGrid(GameState& state, int hitR, int hitC)
+{
+    ClearCell((int)state.ball.prevX, (int)state.ball.prevY);
+    ClearCell((int)state.ball.x, (int)state.ball.y);
+
+    int bestRow = -1;
+    int bestCol = -1;
+    float bestDist = 1e30f;
+
+    float moveAngle = atan2(state.ball.dirX, -state.ball.dirY) * 180.0f / 3.141592f;
+    float absAngle = fabs(moveAngle);
+
+    const float SIDE_ATTACH_ANGLE = 35.0f;
+
+    int nb[6][2];
+    GetNeighbors(hitR, hitC, nb);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        int r = nb[i][0];
+        int c = nb[i][1];
+
+        if (!InGrid(r, c))
+            continue;
+
+        if (state.grid[r][c].color != BubbleColor::NONE)
+            continue;
+
+        if (absAngle < SIDE_ATTACH_ANGLE && r == hitR)
+            continue;
+
+        float dx = state.ball.x - GridToScreenX(c);
+        float dy = state.ball.y - GridToScreenY(r);
+        float dist = dx * dx + dy * dy;
+
+        if (dist < bestDist)
+        {
+            bestDist = dist;
+            bestRow = r;
+            bestCol = c;
+        }
+    }
+
+    if (bestRow == -1)
+    {
+        state.ball.isMoving = false;
+        state.ball.isActive = false;
+        RenderGrid(state);
+        return;
+    }
+
+    state.grid[bestRow][bestCol].color = state.ball.color;
+    state.grid[bestRow][bestCol].type = state.ball.type;
 
     state.ball.isMoving = false;
     state.ball.isActive = false;
 
+    RenderGrid(state);
     ProcessMatch(state, bestRow, bestCol);
 
     state.shooter.prevAngle = 999.0f;
@@ -638,5 +757,50 @@ Color ToConsoleColor(BubbleColor color)
         case BubbleColor::VIOLET: return Color::LIGHT_VIOLET;
         case BubbleColor::CYAN: return Color::CYAN;
         default: return Color::WHITE;
+    }
+}
+
+const wchar_t* GetBubbleShape(BubbleType type)
+{
+    if (type == BubbleType::BOMB)
+        return L"◎";
+
+    return L"●";
+}
+
+BubbleType GetRandomBubbleType()
+{
+    if (rand() % 5 == 0)
+        return BubbleType::BOMB;
+
+    return BubbleType::NORMAL;
+}
+
+void ClearBubbleAt(GameState& state, int r, int c)
+{
+    if (!InGrid(r, c))
+        return;
+
+    state.grid[r][c].color = BubbleColor::NONE;
+    state.grid[r][c].type = BubbleType::NORMAL;
+}
+
+void ExplodeAround(GameState& state, int r, int c)
+{
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
+        {
+            if (i == 0 && j == 0)
+                continue;
+
+            int nr = r + i;
+            int nc = c + j;
+
+            if (!InGrid(nr, nc))
+                continue;
+
+            ClearBubbleAt(state, nr, nc);
+        }
     }
 }
