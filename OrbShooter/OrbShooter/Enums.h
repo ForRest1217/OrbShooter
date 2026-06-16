@@ -13,13 +13,13 @@ enum class Menu
 	INFO,
 	QUIT
 };
-enum class BubbleColor
+enum class OrbColor
 {
 	NONE = 0,
 	RED, GREEN, BLUE, YELLOW, VIOLET, CYAN,
 	COUNT
 };
-enum class BubbleType
+enum class OrbType
 {
 	NORMAL,
 	BOMB

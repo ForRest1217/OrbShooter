@@ -6,8 +6,8 @@ void InitInGame(GameState& state)
     {
         for (int j = 0; j < GRID_COLS; ++j)
         {
-            state.grid[i][j].color = BubbleColor::NONE;
-            state.grid[i][j].type = BubbleType::NORMAL;
+            state.grid[i][j].color = OrbColor::NONE;
+            state.grid[i][j].type = OrbType::NORMAL;
         }
     }
 
@@ -146,6 +146,11 @@ void UpdateBall(GameState& state)
         state.grid[0][col].color = state.ball.color;
         state.grid[0][col].type = state.ball.type;
 
+        std::vector<std::pair<int, int>> floating = FindFloating(state);
+        state.score += (int)floating.size() * 5;
+
+        for (int i = 0; i < (int)floating.size(); ++i)
+            ClearBubbleAt(state, floating[i].first, floating[i].second);
         RenderGrid(state);
 
         state.ball.isMoving = false;
@@ -188,11 +193,11 @@ void HoldBall(GameState& state)
     }
     else
     {
-        BubbleColor tempColor = state.shooter.currentColor;
+        OrbColor tempColor = state.shooter.currentColor;
         state.shooter.currentColor = state.shooter.holdColor;
         state.shooter.holdColor = tempColor;
 
-        BubbleType tempType = state.shooter.currentType;
+        OrbType tempType = state.shooter.currentType;
         state.shooter.currentType = state.shooter.holdType;
         state.shooter.holdType = tempType;
     }
@@ -219,7 +224,7 @@ void ProcessMatch(GameState& state, int r, int c)
         int br = connected[i].first;
         int bc = connected[i].second;
 
-        if (state.grid[br][bc].type == BubbleType::BOMB)
+        if (state.grid[br][bc].type == OrbType::BOMB)
             bombs.push_back(std::make_pair(br, bc));
     }
 
@@ -264,7 +269,7 @@ void RenderGrid(const GameState& state)
         {
             GotoXY(offsetX + j * 2, i + 1); 
 
-            if (state.grid[i][j].color == BubbleColor::NONE)
+            if (state.grid[i][j].color == OrbColor::NONE)
             {
                 if (j == GRID_COLS - 1)
                     cout << " ";
@@ -321,8 +326,9 @@ void RenderShooter(const GameState& state)
     SetDefaultMode();
     SetColor();
 
-    GotoXY(2, HEIGHT - 3); cout << "LEFT/RIGHT : Aim          ";
-    GotoXY(2, HEIGHT - 2); cout << "SPACE      : Shoot        ";
+    GotoXY(2, HEIGHT - 4); cout << "LEFT/RIGHT : Aim          ";
+    GotoXY(2, HEIGHT - 3); cout << "SPACE      : Shoot        ";
+    GotoXY(2, HEIGHT - 2); cout << "C          : Hold        ";
 
     //다음공
     GotoXY(26, HEIGHT - 2);
@@ -350,7 +356,7 @@ void RenderShooter(const GameState& state)
         cout << "-";
     SetColor();
 
-    GotoXY(2, HEIGHT - 4);
+    GotoXY(2, HEIGHT - 5);
     cout << "Score: " << state.score << "   ";
 }
 
@@ -424,7 +430,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
         int col = (drawX - offsetX) / 2;
 
         if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS &&
-            state.grid[row][col].color != BubbleColor::NONE)
+            state.grid[row][col].color != OrbColor::NONE)
         {
             if (erase)
             {
@@ -511,8 +517,8 @@ void GetNeighbors(int r, int c, int out[6][2])
 
 std::vector<std::pair<int, int>> FindConnected(GameState& state, int startR, int startC)
 {
-    BubbleColor target = state.grid[startR][startC].color;
-    if (target == BubbleColor::NONE) 
+    OrbColor target = state.grid[startR][startC].color;
+    if (target == OrbColor::NONE) 
         return std::vector<std::pair<int, int> >();
 
     std::vector<std::pair<int, int> > result;
@@ -556,7 +562,7 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
 
     for (int c = 0; c < GRID_COLS; ++c)
     {
-        if (state.grid[0][c].color == BubbleColor::NONE) 
+        if (state.grid[0][c].color == OrbColor::NONE) 
             continue;
         if (attached.count(std::make_pair(0, c)))        
             continue;
@@ -580,7 +586,7 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
                 continue;
             if (attached.count(std::make_pair(nr, nc)))  
                 continue;
-            if (state.grid[nr][nc].color == BubbleColor::NONE) 
+            if (state.grid[nr][nc].color == OrbColor::NONE) 
                 continue;
 
             attached.insert(std::make_pair(nr, nc));
@@ -591,7 +597,7 @@ std::vector<std::pair<int, int> > FindFloating(GameState& state)
     std::vector<std::pair<int, int> > floating;
     for (int i = 0; i < GRID_ROWS; ++i)
         for (int j = 0; j < GRID_COLS; ++j)
-            if (state.grid[i][j].color != BubbleColor::NONE &&
+            if (state.grid[i][j].color != OrbColor::NONE &&
                 !attached.count(std::make_pair(i, j)))
                 floating.push_back(std::make_pair(i, j));
 
@@ -602,7 +608,7 @@ void DropNewRow(GameState& state)
 {
     for (int i = 0; i < GRID_COLS; ++i)
     {
-        if (state.grid[GRID_ROWS - 1][i].color != BubbleColor::NONE)
+        if (state.grid[GRID_ROWS - 1][i].color != OrbColor::NONE)
         {
             //state.curScene = Scene::GAMEOVER;
             return;
@@ -617,13 +623,13 @@ void DropNewRow(GameState& state)
     {
         if (rand() % 5 == 0)
         {
-            state.grid[0][i].color = BubbleColor::NONE;
-            state.grid[0][i].type = BubbleType::NORMAL;
+            state.grid[0][i].color = OrbColor::NONE;
+            state.grid[0][i].type = OrbType::NORMAL;
         }
         else
         {
             state.grid[0][i].color = GetRandomBubbleColor();
-            state.grid[0][i].type = BubbleType::NORMAL;
+            state.grid[0][i].type = OrbType::NORMAL;
         }
     }
 
@@ -657,7 +663,7 @@ bool CheckBubbleCollision(const GameState& state, int& hitR, int& hitC)
     {
         for (int j = 0; j < GRID_COLS; ++j)
         {
-            if (state.grid[i][j].color == BubbleColor::NONE)
+            if (state.grid[i][j].color == OrbColor::NONE)
                 continue;
 
             float dx = state.ball.x - GridToScreenX(j);
@@ -688,7 +694,7 @@ void SnapBallToGrid(GameState& state, int hitR, int hitC)
     float moveAngle = atan2(state.ball.dirX, -state.ball.dirY) * 180.0f / 3.141592f;
     float absAngle = fabs(moveAngle);
 
-    const float SIDE_ATTACH_ANGLE = 35.0f;
+    const float SIDE_ATTACH_ANGLE = 20.0f;
 
     int nb[6][2];
     GetNeighbors(hitR, hitC, nb);
@@ -701,7 +707,7 @@ void SnapBallToGrid(GameState& state, int hitR, int hitC)
         if (!InGrid(r, c))
             continue;
 
-        if (state.grid[r][c].color != BubbleColor::NONE)
+        if (state.grid[r][c].color != OrbColor::NONE)
             continue;
 
         if (absAngle < SIDE_ATTACH_ANGLE && r == hitR)
@@ -740,40 +746,40 @@ void SnapBallToGrid(GameState& state, int hitR, int hitC)
     RenderAimLine(state);
 }
 
-BubbleColor GetRandomBubbleColor()
+OrbColor GetRandomBubbleColor()
 {
-    int value = rand() % ((int)BubbleColor::COUNT - 1) + 1;
-    return (BubbleColor)value;
+    int value = rand() % ((int)OrbColor::COUNT - 1) + 1;
+    return (OrbColor)value;
 }
 
-Color ToConsoleColor(BubbleColor color)
+Color ToConsoleColor(OrbColor color)
 {
     switch (color)
     {
-        case BubbleColor::RED: return Color::LIGHT_RED;
-        case BubbleColor::GREEN: return Color::LIGHT_GREEN;
-        case BubbleColor::BLUE: return Color::LIGHT_BLUE;
-        case BubbleColor::YELLOW: return Color::LIGHT_YELLOW;
-        case BubbleColor::VIOLET: return Color::LIGHT_VIOLET;
-        case BubbleColor::CYAN: return Color::CYAN;
+        case OrbColor::RED: return Color::LIGHT_RED;
+        case OrbColor::GREEN: return Color::LIGHT_GREEN;
+        case OrbColor::BLUE: return Color::LIGHT_BLUE;
+        case OrbColor::YELLOW: return Color::LIGHT_YELLOW;
+        case OrbColor::VIOLET: return Color::LIGHT_VIOLET;
+        case OrbColor::CYAN: return Color::CYAN;
         default: return Color::WHITE;
     }
 }
 
-const wchar_t* GetBubbleShape(BubbleType type)
+const wchar_t* GetBubbleShape(OrbType type)
 {
-    if (type == BubbleType::BOMB)
+    if (type == OrbType::BOMB)
         return L"◎";
 
     return L"●";
 }
 
-BubbleType GetRandomBubbleType()
+OrbType GetRandomBubbleType()
 {
     if (rand() % 5 == 0)
-        return BubbleType::BOMB;
+        return OrbType::BOMB;
 
-    return BubbleType::NORMAL;
+    return OrbType::NORMAL;
 }
 
 void ClearBubbleAt(GameState& state, int r, int c)
@@ -781,8 +787,8 @@ void ClearBubbleAt(GameState& state, int r, int c)
     if (!InGrid(r, c))
         return;
 
-    state.grid[r][c].color = BubbleColor::NONE;
-    state.grid[r][c].type = BubbleType::NORMAL;
+    state.grid[r][c].color = OrbColor::NONE;
+    state.grid[r][c].type = OrbType::NORMAL;
 }
 
 void ExplodeAround(GameState& state, int r, int c)

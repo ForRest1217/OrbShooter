@@ -25,8 +25,8 @@ struct Ball
     float dirY = -1.0f;
     float speed = 0.7f;
 
-    BubbleColor color = BubbleColor::RED;
-    BubbleType type = BubbleType::NORMAL;
+    OrbColor color = OrbColor::RED;
+    OrbType type = OrbType::NORMAL;
 
     bool isMoving = false;
     bool isActive = false;  
@@ -39,22 +39,22 @@ struct Shooter
     float angle = 0.0f;
     float prevAngle = 999.0f;   
 
-    BubbleColor currentColor = BubbleColor::RED;
-    BubbleColor nextColor = BubbleColor::RED;
+    OrbColor currentColor = OrbColor::RED;
+    OrbColor nextColor = OrbColor::RED;
 
-    BubbleType currentType = BubbleType::NORMAL;
-    BubbleType nextType = BubbleType::NORMAL;
+    OrbType currentType = OrbType::NORMAL;
+    OrbType nextType = OrbType::NORMAL;
 
-    BubbleColor holdColor = BubbleColor::NONE;
-    BubbleType holdType = BubbleType::NORMAL;
+    OrbColor holdColor = OrbColor::NONE;
+    OrbType holdType = OrbType::NORMAL;
 
     bool hasHold = false;
 };
 
 struct Bubble
 {
-    BubbleColor color = BubbleColor::NONE;
-    BubbleType type = BubbleType::NORMAL;
+    OrbColor color = OrbColor::NONE;
+    OrbType type = OrbType::NORMAL;
 };
 
 struct GameState

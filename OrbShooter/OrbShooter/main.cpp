@@ -7,6 +7,7 @@ int main()
 	GameState state;
 	Init(state);
 	SetCursorVisible(false);
+	SetConsoleMouseInputDisabled();
 
 	//Å×½ºÆ®
 	state.curScene = Scene::TITLE;

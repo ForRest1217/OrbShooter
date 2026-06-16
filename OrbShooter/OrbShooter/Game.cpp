@@ -11,7 +11,6 @@ void Init(GameState& state)
     srand((unsigned int)time(nullptr));
     SetConsoleWindowSize(WIDTH, HEIGHT);
     SetConsoleWindowStyle(true);
-    SetConsoleMouseInputDisabled();
     SetCursorVisible(false);
 
     state = GameState();

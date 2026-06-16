@@ -161,7 +161,7 @@ void ShakeConsoleWindow(int intensity, int duration, int interval)
 
 void SetConsoleMouseInputDisabled()
 {
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);;//¼öÇà³ª¿È
+	HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);;//¼öÇà³ª¿È
 	DWORD mode;
 	GetConsoleMode(handle, &mode);
 	mode &= ~ENABLE_QUICK_EDIT_MODE;
