@@ -81,7 +81,7 @@ static void DrawCenterWText(int y, const wchar_t* text, Color color = Color::WHI
 static void DrawGameOverLogo()
 {
     DrawCenterWText(3, L"  █████████                                        ███████                                  ", Color::LIGHT_RED);
-    DrawCenterWText(4, L" ███░░░░░███                                     ███░░░░░███                                ", Color::LIGHT_RED);
+    DrawCenterWText(4, L" ███░░░░░███                                     ███░░░░░░███                                ", Color::LIGHT_RED);
     DrawCenterWText(5, L" ███     ░░░   ██████   █████████████    ██████  ███     ░░███ █████ █████  ██████  ████████ ", Color::LIGHT_RED);
     DrawCenterWText(6, L"░███          ░░░░░███ ░░███░░███░░███  ███░░███░███      ░███░░███ ░░███  ███░░███░░███░░███", Color::LIGHT_RED);
     DrawCenterWText(7, L"░███    █████  ███████  ░███ ░███ ░███ ░███████ ░███      ░███ ░███  ░███ ░███████  ░███ ░░░ ", Color::LIGHT_RED);
@@ -249,9 +249,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Perfect Clear!",
-            "You are the Bubble Master.",
-            "No one can stop you."
+            "너무 졸려",
+            "자고 싶어",
+            "냄비"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_YELLOW);
@@ -262,9 +262,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Excellent Play!",
-            "Your aim was very clean.",
-            "Almost perfect."
+            "좀 치네",
+            "레전드 ",
+            "오늘 완전 뱅이었어"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_GREEN);
@@ -275,9 +275,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Good Result!",
-            "A little more and you can reach A rank.",
-            "Nice bubble control."
+            "Good!",
+            "A ",
+            "Niga"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_BLUE);
@@ -288,9 +288,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Not Bad.",
-            "Try to make bigger combos.",
-            "You can do better next time."
+            ".",
+            "Cㅂ",
+            "Yo"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::WHITE);
@@ -301,9 +301,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Keep Practicing.",
-            "Focus on the next bubble.",
-            "Don't rush your shots."
+            "저런, 그러게 잘하셨으면...이라고 쓰면 게임에 쓸꺼니? ",
+            "죽어 한남 -한재훈",
+            " ㅠㅠ 노력하면 점수를 올릴수 있을거에요!"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::GRAY);
@@ -314,9 +314,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Game Over...",
-            "The bubbles took over.",
-            "Try again."
+            "게이년 ㅋ -우성태",
+            "ㅉㅉ 짱애련 -정지한",
+            "구라 안까고 성태보다 잘함 -한재훈"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_RED);
