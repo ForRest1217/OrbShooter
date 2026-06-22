@@ -610,7 +610,7 @@ void DropNewRow(GameState& state)
     {
         if (state.grid[GRID_ROWS - 1][i].color != OrbColor::NONE)
         {
-            //state.curScene = Scene::GAMEOVER;
+            state.curScene = Scene::GAMEOVER;
             return;
         }
     }
