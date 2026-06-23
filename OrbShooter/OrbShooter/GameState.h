@@ -8,7 +8,7 @@ constexpr int WIDTH = 100;
 constexpr int HEIGHT = 40;
 
 constexpr int SHOOTER_START_Y = HEIGHT - 5; //슈터 위치
-constexpr int GAMEOVER_Y = SHOOTER_START_Y; //게임오버 위치
+constexpr int GAMEOVER_Y = SHOOTER_START_Y - 1; //게임오버 위치
 
 constexpr int GRID_COLS = 13; //열
 constexpr int GRID_ROWS = GAMEOVER_Y; // 행

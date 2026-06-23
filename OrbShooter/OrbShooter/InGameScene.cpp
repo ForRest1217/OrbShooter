@@ -36,8 +36,8 @@ void InitInGame(GameState& state)
     state.balls.clear();
 
     //현재 아이템 초기화
-    state.currentItem = ItemType::DropFreeze;
-    state.hasItem = true;
+    state.currentItem = ItemType::NONE;
+    state.hasItem = false;
     //난사 초기화
     state.isBarrage = false;
     state.barrageEndTick = 0;
@@ -479,7 +479,7 @@ void RenderShooter(const GameState& state)
     else
         SetColor(ToConsoleColor(state.shooter.currentColor));
     SetUnicodeMode();
-    GotoXY(state.shooter.x, state.shooter.y);
+    GotoXY(state.shooter.x - 1, state.shooter.y);
     wcout << GetOrbShape(state.shooter.currentType);
     SetDefaultMode();
 
@@ -634,7 +634,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
         {
             if (erase)
             {
-                GotoXY(GridToScreenX(col), GridToScreenY(row));
+                GotoXY(GridToScreenX(col) - 1, GridToScreenY(row));
 
                 if (state.grid[row][col].item == ItemType::OrbBarrage)
                 {
@@ -661,7 +661,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
 
         float currentAngle = atan2(simDirX, -simDirY) * 180.0f / 3.141592f;
         wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
-        GotoXY(drawX, drawY);
+        GotoXY(drawX - 1, drawY);
         SetUnicodeMode();
         wcout << aimChar;
         SetDefaultMode();
