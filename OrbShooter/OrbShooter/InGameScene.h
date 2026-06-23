@@ -1,6 +1,7 @@
 #pragma once
 #include "GameState.h"
 #include "Console.h"
+#include "SoundManager.h"
 #include <vector>
 #include <queue>
 #include <set>

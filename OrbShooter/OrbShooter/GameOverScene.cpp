@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include <cwchar>
+#include <utility>
 
 static int showScore = 0;
 static int prevShowScore = -1;
@@ -188,9 +189,8 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "오늘 밤 바라본~~",
-            "저 달이 너무 처량해~~",
-            "너도 나처럼~~ 외~~로운 텅 빈 가슴 안고  사는구나~~"
+            "기~가~막~히~네 - 정현진",
+            "사람들은 완전히 멘탈이 나가버렸습니다",
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_YELLOW);
@@ -201,9 +201,8 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "ㄴ",
-            "ㄱ",
-            "ㅁ"
+            "A등급 맛있네요 - 노현우",
+            "아듘",
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_GREEN);
@@ -214,9 +213,8 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "애매하게 잘했네♡ 허접치고는 봐줄 만해~",
-            "잘했는데 자랑하긴 애매하네♡ 허접한테는 큰 발전인가?",
-            "아쉽게도 여기까지네♡ 허접 실력 귀여워♡"
+            "ㄲㅂ 아깝다 - 우성태",
+            "야 ~ 호- 조윤규",
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_BLUE);
@@ -229,7 +227,7 @@ static void DrawRankComment(int score)
         {
             "이제 눈을 뜨고 플레이 해주세요!",
             "으음… 조금만 더 힘내볼까요?",
-            "괜찮아요. 다음 판이 있잖아요."
+            "준민이니? - 김예루"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::WHITE);
@@ -240,9 +238,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "저런, 그러게 잘하셨으면... 라고하면 게임에 쓸거니? -장준민",
-            "죽어 한남 -한재훈",
-            " ㅠㅠ 노력하면 점수를 올릴수 있을거에요!"
+            "아직 손이 안풀림 - 신동완",
+            "죽어 -한재훈",
+            "와 어렵네 이거 - 유현우"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::GRAY);
@@ -253,9 +251,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            " ㅋ -우성태",
-            "ㅉㅉㅉ",
-            "사람이 아니야 ㅠㅠ"
+            "허♡접 -우성태",
+            "저런, 그러게 잘하셨으면... 라고하면 게임에 쓸거니 ? -장준민",
+            "사람 아니야 ㅠㅠ"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_RED);
@@ -276,6 +274,38 @@ static void DrawGameoverMenu(const GameState& state)
     prevMenu = (int)state.curMenu;
 }
 
+static std::pair<int, int> GetMouseConsolePos()
+{
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+
+    HWND console = GetConsoleWindow();
+    ScreenToClient(console, &mousePos);
+
+    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_FONT_INFO fontInfo;
+    GetCurrentConsoleFont(output, FALSE, &fontInfo);
+
+    COORD fontSize = GetConsoleFontSize(output, fontInfo.nFont);
+
+    return {
+        mousePos.x / fontSize.X,
+        mousePos.y / fontSize.Y
+    };
+}
+
+static bool GetMouseDown()
+{
+    static bool prevClick = false;
+
+    bool curClick = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+    bool result = curClick && !prevClick;
+
+    prevClick = curClick;
+
+    return result;
+}
 
 static void SelectGameoverMenu(GameState& state)
 {
@@ -296,6 +326,9 @@ static void SelectGameoverMenu(GameState& state)
 
 void InitGameover(GameState& state)
 {
+    SOUND->StopBGM();
+    SOUND->Play("Dead");
+
     showScore = 0;
     prevShowScore = -1;
     prevMenu = -1;
