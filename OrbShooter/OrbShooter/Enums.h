@@ -17,10 +17,18 @@ enum class OrbColor
 {
 	NONE = 0,
 	RED, GREEN, BLUE, YELLOW, VIOLET, CYAN,
+	JOKER,
 	COUNT
 };
 enum class OrbType
 {
 	NORMAL,
-	BOMB
+	BOMB,
+	JOKER
+};
+enum class ItemType
+{
+	NONE,
+	OrbBarrage,
+	DropFreeze
 };

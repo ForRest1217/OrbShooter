@@ -10,6 +10,17 @@ static void DrawCenterText(int y, const string& text, Color color = Color::WHITE
 	SetColor();
 }
 
+static void DrawCenterUniCodeText(int y, const wstring& text, Color color = Color::WHITE)
+{
+	int x = WIDTH / 2 - (int)text.length() / 2;
+	GotoXY(x, y);
+	SetColor(color);
+	SetUnicodeMode();
+	wcout << text;
+	SetDefaultMode();
+	SetColor();
+}
+
 static void DrawMenuText(int y, const string& text, bool selected)
 {
 	string line;
@@ -204,11 +215,25 @@ void UpdateInfo(GameState& state)
 
 void RenderInfo(const GameState& state)
 {
-	DrawCenterText(6, "HOW TO PLAY?", Color::LIGHT_YELLOW);
+	DrawCenterText(1, "HOW TO PLAY?", Color::LIGHT_YELLOW);
 
-	DrawCenterText(12, "LEFT / RIGHT : Aim", Color::WHITE);
-	DrawCenterText(14, "SPACE        : Shoot!!", Color::WHITE);
-	DrawCenterText(16, "Match 3 same color bubbles!", Color::WHITE);
 
-	DrawCenterText(26, "BACKSPACE : Back", Color::GRAY);
+	DrawCenterText(4, "LEFT/RIGHT : 조준", Color::WHITE);
+	DrawCenterText(6, "SPACE      : 발사", Color::WHITE);
+	DrawCenterText(8, "C         : 홀드", Color::WHITE);
+	DrawCenterText(10, "Z   : 아이템 사용", Color::WHITE);
+
+	DrawCenterText(14, "3개의 공을 맞춰 없애 내려오는 공들을 막으세요", Color::WHITE);
+
+	DrawCenterText(18, "<오브 종류>", Color::WHITE);
+	DrawCenterUniCodeText(20, L"● : 일반 오브 - 능력 없음          ", Color::WHITE);
+	DrawCenterUniCodeText(22, L"◎ : 폭탄 오브 - 없어질 때 주변 8칸 삭제", Color::WHITE);
+	DrawCenterUniCodeText(24, L"◐ : 조커 오브 - 어떤 색으로든 변할 수 있음", Color::WHITE);
+
+	DrawCenterText(28, "<아이템 종류>", Color::WHITE);
+	DrawCenterUniCodeText(30, L"▣ : 아이템 박스 - 아이템 박스 주변 오브를 없앨 때 획득", Color::WHITE);
+	DrawCenterText(32, "난사 : 5초간 조커 오브를 난사 가능", Color::WHITE);
+	DrawCenterText(34, "얼음 : 3내려오는 오브들을 멈춤     ", Color::WHITE);
+
+	DrawCenterText(38, "BACKSPACE : Back", Color::GRAY);
 }

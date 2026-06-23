@@ -8,6 +8,7 @@
 #include <cmath>
 
 void InitInGame(GameState& state);
+ULONGLONG GetCurrentDropInterval(GameState& state);
 
 void UpdateInGame(GameState& state);
 void UpdateShooter(GameState& state);
@@ -18,7 +19,7 @@ void ProcessMatch(GameState& state, int r, int c);
 void DropNewRow(GameState& state);
 
 void RenderInGame(const GameState& state);
-void RenderWall();
+void RenderWall(const GameState& state);
 void RenderShooter(const GameState& state);
 void RenderAimLine(const GameState& state);
 void RenderBall(const GameState& state);
@@ -28,7 +29,7 @@ void ClearCell(int x, int y);
 void RenderGrid(const GameState& state);
 
 bool InGrid(int r, int c);
-void GetNeighbors(int r, int c, int out[6][2]);
+void GetNeighbors(int r, int c, int out[4][2]);
 std::vector<std::pair<int, int> > FindConnected(GameState& state, int startR, int startC);
 std::vector<std::pair<int, int> > FindFloating(GameState& state);
 
@@ -36,13 +37,16 @@ int  GetGridOffsetX();
 int  GridToScreenX(int col);
 int  GridToScreenY(int row);
 
-bool CheckBubbleCollision(const GameState& state, int& hitR, int& hitC);
-void SnapBallToGrid(GameState& state, int hitR, int hitC);
+bool CheckOrbCollision(const GameState& state, const Ball& ball, int& hitR, int& hitC);
+void SnapBallToGrid(GameState& state, Ball& ball, int hitR, int hitC);
 
 OrbColor GetRandomBubbleColor();
 Color       ToConsoleColor(OrbColor color);
 
-OrbType GetRandomBubbleType();
-const wchar_t* GetBubbleShape(OrbType type);
-void ClearBubbleAt(GameState& state, int r, int c);
+OrbType GetRandomOrbType();
+const wchar_t* GetOrbShape(OrbType type);
+void ClearOrbAt(GameState& state, int r, int c);
 void ExplodeAround(GameState& state, int r, int c);
+
+void CollectNearItems(GameState& state, int r, int c);
+void CollectItemAt(GameState& state, int r, int c);
