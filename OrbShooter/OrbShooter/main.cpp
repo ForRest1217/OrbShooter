@@ -5,6 +5,7 @@
 int main()
 {
 	GameState state;
+	SOUND->Init();
 	Init(state);
 	SetCursorVisible(false);
 	SetConsoleMouseInputDisabled();

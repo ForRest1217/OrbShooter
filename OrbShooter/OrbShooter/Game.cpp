@@ -17,7 +17,11 @@ void Init(GameState& state)
     state = GameState();
     state.shooter.nextColor = GetRandomBubbleColor();
 
-    SOUND->Init();
+    SOUND->Load("Freeze", "Sound/FreezeSound.wav");
+    SOUND->Load("OrbBarrage", "Sound/OrbBarrageSound.mp3");
+    SOUND->Load("OrbClear", "Sound/OrbClearSound.mp3");
+    SOUND->Load("OrbShoot", "Sound/OrbShootSound.mp3");
+    SOUND->Load("Dead", "Sound/DeadSound.mp3");
 }
 
 void Update(GameState& state)

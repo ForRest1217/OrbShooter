@@ -24,7 +24,7 @@ constexpr int BOMB_ORB_CHANCE = 7;
 constexpr int JOKER_ORB_CHANCE = 10;
 
 //아이템
-constexpr int ITEM_DROP_CHANCE = 20;
+constexpr int ITEM_DROP_CHANCE = 23;
 //난사
 constexpr ULONGLONG BARRAGE_SHOT_INTERVAL = 300;
 constexpr float NORMAL_BALL_SPEED = 0.17;

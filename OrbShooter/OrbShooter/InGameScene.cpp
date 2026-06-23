@@ -2,6 +2,8 @@
 
 void InitInGame(GameState& state)
 {
+    SOUND->PlayBGM("Sound/GameBGM.mp3");
+
     //시작 시 그리드 초기화
     for (int i = 0; i < GRID_ROWS; ++i)
     {
@@ -84,6 +86,8 @@ void UpdateInGame(GameState& state)
         //난사
         if (state.currentItem == ItemType::OrbBarrage)
         {
+            SOUND->Play("OrbBarrage");
+
             state.isBarrage = true;
             state.barrageEndTick = now + 5000;
             state.barrageLastShotTick = 0;
@@ -91,6 +95,8 @@ void UpdateInGame(GameState& state)
         //얼음
         else if (state.currentItem == ItemType::DropFreeze)
         {
+            SOUND->Play("Freeze");
+
             state.isDropFreeze = true;
             state.dropFreezeEndTick = now + DROP_FREEZE_DURATION;
             state.lastDropTick = now;
@@ -176,6 +182,8 @@ void ShootBall(GameState& state)
 {
     if (!state.isBarrage && !state.balls.empty())
         return;
+
+    SOUND->Play("OrbShoot");
 
     RenderAimLineByAngle(state, state.shooter.angle, true);
 
@@ -360,6 +368,8 @@ void ProcessMatch(GameState& state, int r, int c)
         if (state.grid[br][bc].type == OrbType::BOMB)
             bombs.push_back(std::make_pair(br, bc));
     }
+
+    SOUND->Play("OrbClear");
 
     //아이템먹기
     for (int i = 0; i < (int)connected.size(); ++i)
@@ -634,7 +644,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
         {
             if (erase)
             {
-                GotoXY(GridToScreenX(col) - 1, GridToScreenY(row));
+                GotoXY(GridToScreenX(col), GridToScreenY(row));
 
                 if (state.grid[row][col].item == ItemType::OrbBarrage)
                 {
@@ -661,7 +671,7 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
 
         float currentAngle = atan2(simDirX, -simDirY) * 180.0f / 3.141592f;
         wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
-        GotoXY(drawX - 1, drawY);
+        GotoXY(drawX , drawY);
         SetUnicodeMode();
         wcout << aimChar;
         SetDefaultMode();

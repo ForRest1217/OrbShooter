@@ -1,6 +1,7 @@
 #pragma once
 #include "GameState.h"
 #include "Console.h"
+#include "SoundManager.h";
 
 void InitGameover(GameState& state);
 void UpdateGameover(GameState& state);
