@@ -2,6 +2,7 @@
 #include "Console.h"
 #include "SoundManager.h"
 #include "InGameScene.h"
+#include "GameOverScene.h"
 #include "TitleScene.h"
 #include <cstdlib>
 #include <ctime>
@@ -47,6 +48,9 @@ void Update(GameState& state)
             UpdateInGame(state);
             break;
         case Scene::GAMEOVER:
+            if (sceneChanged)
+                InitGameover(state);
+            UpdateGameover(state);
             break;
     }
 }
@@ -63,13 +67,17 @@ void Render(const GameState& state)
         case Scene::TITLE:
             RenderTitle(state);
             break;
+
         case Scene::INFO:
-             RenderInfo(state);
+            RenderInfo(state);
             break;
+
         case Scene::INGAME:
             RenderInGame(state);
             break;
+
         case Scene::GAMEOVER:
+            RenderGameover(state);
             break;
     }
 }
