@@ -83,7 +83,14 @@ void DrawMenuText(int y, const string& text, bool selected)
 
 bool GetMouseDown()
 {
-    return GetKeyDown(VK_LBUTTON);
+    static bool prevClick = false;
+
+    bool curClick = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+    bool result = curClick && !prevClick;
+
+    prevClick = curClick;
+
+    return result;
 }
 
 bool IsMouseInArea(int startX, int startY, int endX, int endY)

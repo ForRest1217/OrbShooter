@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <string>
 #include <cwchar>
-#include <utility>
 
 static int showScore = 0;
 static int prevShowScore = -1;
@@ -254,9 +253,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "게이년 ㅋ -우성태",
-            "ㅉㅉ 짱애련 -정지한",
-            "구라 안까고 성태보다 잘함 -한재훈"
+            " ㅋ -우성태",
+            "ㅉㅉㅉ",
+            "사람이 아니야 ㅠㅠ"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_RED);
@@ -277,38 +276,6 @@ static void DrawGameoverMenu(const GameState& state)
     prevMenu = (int)state.curMenu;
 }
 
-static std::pair<int, int> GetMouseConsolePos()
-{
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-
-    HWND console = GetConsoleWindow();
-    ScreenToClient(console, &mousePos);
-
-    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    CONSOLE_FONT_INFO fontInfo;
-    GetCurrentConsoleFont(output, FALSE, &fontInfo);
-
-    COORD fontSize = GetConsoleFontSize(output, fontInfo.nFont);
-
-    return {
-        mousePos.x / fontSize.X,
-        mousePos.y / fontSize.Y
-    };
-}
-
-static bool GetMouseDown()
-{
-    static bool prevClick = false;
-
-    bool curClick = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
-    bool result = curClick && !prevClick;
-
-    prevClick = curClick;
-
-    return result;
-}
 
 static void SelectGameoverMenu(GameState& state)
 {
