@@ -189,9 +189,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "너무 졸려",
-            "자고 싶어",
-            "냄비"
+            "오늘 밤 바라본~~",
+            "저 달이 너무 처량해~~",
+            "너도 나처럼~~ 외~~로운 텅 빈 가슴 안고  사는구나~~"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_YELLOW);
@@ -202,9 +202,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "좀 치네",
-            "레전드 ",
-            "오늘 완전 뱅이었어"
+            " ",
+            " ",
+            "ㄴ"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_GREEN);
@@ -215,9 +215,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "Good!",
-            "A ",
-            "Niga"
+            "애매하게 잘했네♡ 허접치고는 봐줄 만해~",
+            "잘했는데 자랑하긴 애매하네♡ 허접한테는 큰 발전인가?",
+            "아쉽게도 여기까지네♡ 허접 실력 귀여워♡"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_BLUE);
@@ -228,9 +228,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            ".",
-            "Cㅂ",
-            "Yo"
+            "이제 눈을 뜨고 플레이 해주세요!",
+            "으음… 조금만 더 힘내볼까요?",
+            "괜찮아요. 다음 판이 있잖아요."
         };
 
         DrawCenterText(23, comments[commentIndex], Color::WHITE);
@@ -241,7 +241,7 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            "저런, 그러게 잘하셨으면...이라고 쓰면 게임에 쓸꺼니? ",
+            "저런, 그러게 잘하셨으면... 라고하면 게임에 쓸거니? -장준민",
             "죽어 한남 -한재훈",
             " ㅠㅠ 노력하면 점수를 올릴수 있을거에요!"
         };
