@@ -543,6 +543,11 @@ void RenderShooter(const GameState& state)
     //점수
     GotoXY(2, HEIGHT - 2);
     cout << "점수: " << state.score << "   ";
+
+    //알려주는거
+    GotoXY(66, 1); SetUnicodeMode(); wcout << L"●"; SetDefaultMode(); cout << " : 능력 없음";
+    GotoXY(66, 2); SetUnicodeMode(); wcout << L"◎"; SetDefaultMode(); cout << " : 없어질 때 주변 8칸 삭제";
+    GotoXY(66, 3); SetUnicodeMode(); wcout << L"◐"; SetDefaultMode(); cout << " : 어떤 색으로든 변할 수 있음";
 }
 
 void RenderAimLine(const GameState& state)
