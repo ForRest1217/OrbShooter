@@ -202,9 +202,9 @@ static void DrawRankComment(int score)
     {
         string comments[3] =
         {
-            " ",
-            " ",
-            "ㄴ"
+            "ㄴ",
+            "ㄱ",
+            "ㅁ"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_GREEN);
