@@ -46,8 +46,6 @@ void DrawWTextAt(int x, int y, const wchar_t* text, Color color)
 
 void DrawCenterText(int y, const string& text, Color color)
 {
-    ClearLine(y);
-
     int x = WIDTH / 2 - (int)text.length() / 2;
 
     if (x < 0)
@@ -58,8 +56,6 @@ void DrawCenterText(int y, const string& text, Color color)
 
 void DrawCenterWText(int y, const wchar_t* text, Color color)
 {
-    ClearLine(y);
-
     int len = (int)wcslen(text);
     int x = WIDTH / 2 - len / 2;
 

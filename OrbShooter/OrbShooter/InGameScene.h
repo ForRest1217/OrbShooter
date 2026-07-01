@@ -24,25 +24,30 @@ void RenderWall(const GameState& state);
 void RenderShooter(const GameState& state);
 void RenderAimLine(const GameState& state);
 void RenderBall(const GameState& state);
-void RenderAimLineByAngle(const GameState& state, float angle, bool erase);
+void RenderAimLineByAngle(const GameState& state, 
+						  float angle, bool erase);
 wchar_t GetAimChar(float angle);
 void ClearCell(int x, int y);
 void RenderGrid(const GameState& state);
 
 bool InGrid(int r, int c);
 void GetNeighbors(int r, int c, int out[4][2]);
-std::vector<std::pair<int, int> > FindConnected(GameState& state, int startR, int startC);
-std::vector<std::pair<int, int> > FindFloating(GameState& state);
+std::vector<std::pair<int, int>> 
+	FindConnected(GameState& state, int startR, int startC);
+std::vector<std::pair<int, int>> 
+	FindFloating(GameState& state);
 
 int  GetGridOffsetX();
 int  GridToScreenX(int col);
 int  GridToScreenY(int row);
 
-bool CheckOrbCollision(const GameState& state, const Ball& ball, int& hitR, int& hitC);
-void SnapBallToGrid(GameState& state, Ball& ball, int hitR, int hitC);
+bool CheckOrbCollision(const GameState& state, float x, float y, 
+									  float dirX, float dirY, int& hitR, int& hitC);
+bool SnapBallToGrid(GameState& state, Ball& ball, 
+				    int hitR, int hitC);
 
 OrbColor GetRandomBubbleColor();
-Color       ToConsoleColor(OrbColor color);
+Color ToConsoleColor(OrbColor color);
 
 OrbType GetRandomOrbType();
 const wchar_t* GetOrbShape(OrbType type);

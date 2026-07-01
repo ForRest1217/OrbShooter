@@ -13,6 +13,9 @@ constexpr int GAMEOVER_Y = SHOOTER_START_Y - 1; //게임오버 위치
 constexpr int GRID_COLS = 13; //열
 constexpr int GRID_ROWS = GAMEOVER_Y; // 행
 
+const float ORB_HIT_DIST = 3.0f;
+const float ORB_FRONT_DOT = 0.85f;
+
 //오브 줄 나오는 시간 조절
 constexpr ULONGLONG START_DROP_MS = 5000; //처음시간
 constexpr ULONGLONG MIN_DROP_MS = 1200; //최소시간
@@ -82,6 +85,7 @@ struct GameState
     Scene prevScene = Scene::NONE;
     Scene curScene = Scene::TITLE;
     Menu  curMenu = Menu::START;
+    Menu  prevMenu = Menu::QUIT;    
     bool  isRunning = true;
 
     ULONGLONG gameStartTick = 0;

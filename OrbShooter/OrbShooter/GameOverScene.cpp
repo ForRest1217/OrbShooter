@@ -32,19 +32,19 @@ static void DrawGameOverLogo()
 
 static char GetRank(int score)
 {
-    if (score >= 15000)
+    if (score >= 2500)
         return 'S';
 
-    if (score >= 10000)
+    if (score >= 1800)
         return 'A';
 
-    if (score >= 7000)
+    if (score >= 1200)
         return 'B';
 
-    if (score >= 5000)
+    if (score >= 700)
         return 'C';
 
-    if (score >= 3000)
+    if (score >= 300)
         return 'D';
 
     return 'F';
@@ -190,7 +190,8 @@ static void DrawRankComment(int score)
         string comments[3] =
         {
             "기~가~막~히~네 - 정현진",
-            "사람들은 완전히 멘탈이 나가버렸습니다",
+            "옛날사람들은 완전히 멘탈이 나가버렸습니다",
+            "당신은 전설입니다"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_YELLOW);
@@ -203,6 +204,7 @@ static void DrawRankComment(int score)
         {
             "A등급 맛있네요 - 노현우",
             "아듘",
+            "정말 잘하시네요!"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_GREEN);
@@ -215,6 +217,7 @@ static void DrawRankComment(int score)
         {
             "ㄲㅂ 아깝다 - 우성태",
             "야 ~ 호- 조윤규",
+            "발전했어요"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::LIGHT_BLUE);
@@ -226,8 +229,8 @@ static void DrawRankComment(int score)
         string comments[3] =
         {
             "이제 눈을 뜨고 플레이 해주세요!",
-            "으음… 조금만 더 힘내볼까요?",
             "준민이니? - 김예루"
+            "더 힘내세요"
         };
 
         DrawCenterText(23, comments[commentIndex], Color::WHITE);
@@ -272,39 +275,6 @@ static void DrawGameoverMenu(const GameState& state)
     DrawMenuText(31, "Title", state.curMenu == Menu::INFO);
 
     prevMenu = (int)state.curMenu;
-}
-
-static std::pair<int, int> GetMouseConsolePos()
-{
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-
-    HWND console = GetConsoleWindow();
-    ScreenToClient(console, &mousePos);
-
-    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    CONSOLE_FONT_INFO fontInfo;
-    GetCurrentConsoleFont(output, FALSE, &fontInfo);
-
-    COORD fontSize = GetConsoleFontSize(output, fontInfo.nFont);
-
-    return {
-        mousePos.x / fontSize.X,
-        mousePos.y / fontSize.Y
-    };
-}
-
-static bool GetMouseDown()
-{
-    static bool prevClick = false;
-
-    bool curClick = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
-    bool result = curClick && !prevClick;
-
-    prevClick = curClick;
-
-    return result;
 }
 
 static void SelectGameoverMenu(GameState& state)

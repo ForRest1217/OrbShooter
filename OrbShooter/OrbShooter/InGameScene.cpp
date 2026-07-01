@@ -58,6 +58,7 @@ void InitInGame(GameState& state)
     RenderWall(state);
     RenderGrid(state);
     RenderShooter(state);
+    RenderAimLine(state);
 }
 
 ULONGLONG GetCurrentDropInterval(GameState& state)
@@ -167,14 +168,19 @@ void UpdateShooter(GameState& state)
 {
     state.shooter.prevAngle = state.shooter.angle;
 
-    if (GetKey(VK_LEFT))  
-        state.shooter.angle -= 0.3f;
-    if (GetKey(VK_RIGHT)) 
-        state.shooter.angle += 0.3f;
+    float rotateSpeed = 0.7f;
 
-    if (state.shooter.angle < -65.0f) 
+    if (GetKey(VK_CONTROL))
+        rotateSpeed = 0.1f;
+
+    if (GetKey(VK_LEFT))
+        state.shooter.angle -= rotateSpeed;
+    if (GetKey(VK_RIGHT))
+        state.shooter.angle += rotateSpeed;
+
+    if (state.shooter.angle < -65.0f)
         state.shooter.angle = -65.0f;
-    if (state.shooter.angle > 65.0f) 
+    if (state.shooter.angle > 65.0f)
         state.shooter.angle = 65.0f;
 }
 
@@ -189,16 +195,19 @@ void ShootBall(GameState& state)
 
     float rad = state.shooter.angle * 3.141592f / 180.0f;
 
+    float dirX = sin(rad);
+    float dirY = -cos(rad);
+
     Ball newBall;
 
-    newBall.x = (float)state.shooter.x;
-    newBall.y = (float)state.shooter.y - 1;
+    newBall.x = (float)state.shooter.x + dirX;
+    newBall.y = (float)state.shooter.y + dirY;
 
     newBall.prevX = newBall.x;
     newBall.prevY = newBall.y;
 
-    newBall.dirX = sin(rad);
-    newBall.dirY = -cos(rad);
+    newBall.dirX = dirX;
+    newBall.dirY = dirY;
 
     if (state.isBarrage)
         newBall.speed = BARRAGE_BALL_SPEED;
@@ -272,18 +281,12 @@ void UpdateBall(GameState& state)
             ClearCell((int)ball.prevX, (int)ball.prevY);
             ClearCell((int)ball.x, (int)ball.y);
 
-            int col = (int)((ball.x - GetGridOffsetX()) / 2.0f);
+            int col = (int)roundf((ball.x - GetGridOffsetX()) / 2.0f);
             col = max(0, min(col, GRID_COLS - 1));
 
             state.grid[0][col].color = ball.color;
             state.grid[0][col].type = ball.type;
             state.grid[0][col].item = ItemType::NONE;
-
-            std::vector<std::pair<int, int>> floating = FindFloating(state);
-            state.score += (int)floating.size() * 5;
-
-            for (int j = 0; j < (int)floating.size(); ++j)
-                ClearOrbAt(state, floating[j].first, floating[j].second);
 
             RenderGrid(state);
 
@@ -299,10 +302,12 @@ void UpdateBall(GameState& state)
             int hitR;
             int hitC;
 
-            if (CheckOrbCollision(state, ball, hitR, hitC))
+            if (CheckOrbCollision(state, ball.x, ball.y, ball.dirX, ball.dirY, hitR, hitC))
             {
-                SnapBallToGrid(state, ball, hitR, hitC);
-                removeBall = true;
+                if (SnapBallToGrid(state, ball, hitR, hitC))
+                {
+                    removeBall = true;
+                }
             }
         }
 
@@ -400,9 +405,10 @@ void RenderInGame(const GameState& state)
     if (state.balls.empty() || state.isBarrage)
     {
         if (state.shooter.prevAngle != state.shooter.angle)
+        {
             RenderAimLineByAngle(state, state.shooter.prevAngle, true);
-
-        RenderAimLine(state);
+            RenderAimLine(state);
+        }
     }
 
     RenderShooter(state);
@@ -489,16 +495,17 @@ void RenderShooter(const GameState& state)
     else
         SetColor(ToConsoleColor(state.shooter.currentColor));
     SetUnicodeMode();
-    GotoXY(state.shooter.x - 1, state.shooter.y);
+    GotoXY(state.shooter.x, state.shooter.y);
     wcout << GetOrbShape(state.shooter.currentType);
     SetDefaultMode();
 
     //조작키
     SetColor();
     GotoXY(2, 1); cout << "LEFT/RIGHT : 조준";
-    GotoXY(2, 2); cout << "SPACE      : 발사";
-    GotoXY(2, 3); cout << "C          : 홀드";
-    GotoXY(2, 4); cout << "Z          : 아이템 사용";
+    GotoXY(2, 2); cout << "CTRL       : 미세 조준";
+    GotoXY(2, 3); cout << "SPACE      : 발사";
+    GotoXY(2, 4); cout << "C          : 홀드";
+    GotoXY(2, 5); cout << "Z          : 아이템 사용";
 
     //다음공
     GotoXY(23, HEIGHT - 2);
@@ -558,6 +565,9 @@ void RenderShooter(const GameState& state)
     GotoXY(66, 1); SetUnicodeMode(); wcout << L"●"; SetDefaultMode(); cout << " : 능력 없음";
     GotoXY(66, 2); SetUnicodeMode(); wcout << L"◎"; SetDefaultMode(); cout << " : 없어질 때 주변 8칸 삭제";
     GotoXY(66, 3); SetUnicodeMode(); wcout << L"◐"; SetDefaultMode(); cout << " : 어떤 색으로든 변할 수 있음";
+
+    GotoXY(66, 5); cout << "난사 : 5초간 조커 오브 난사 가능";
+    GotoXY(66, 6); cout << "얼음 : 3초간 줄 내려옴 멈춤";
 }
 
 void RenderAimLine(const GameState& state)
@@ -574,10 +584,15 @@ void RenderBall(const GameState& state)
         if (!ball.isActive)
             continue;
 
-        if ((int)ball.prevX != (int)ball.x ||
-            (int)ball.prevY != (int)ball.y)
+        int prevDrawX = (int)roundf(ball.prevX);
+        int prevDrawY = (int)roundf(ball.prevY);
+
+        int drawX = (int)roundf(ball.x);
+        int drawY = (int)roundf(ball.y);
+
+        if (prevDrawX != drawX || prevDrawY != drawY)
         {
-            ClearCell((int)ball.prevX, (int)ball.prevY);
+            ClearCell(prevDrawX, prevDrawY);
         }
 
         if (ball.type == OrbType::JOKER)
@@ -585,7 +600,7 @@ void RenderBall(const GameState& state)
         else
             SetColor(ToConsoleColor(ball.color));
 
-        GotoXY((int)ball.x, (int)ball.y);
+        GotoXY(drawX, drawY);
 
         SetUnicodeMode();
         wcout << GetOrbShape(ball.type);
@@ -630,51 +645,82 @@ void RenderAimLineByAngle(const GameState& state, float angle, bool erase)
             simDirX *= -1;
         }
 
-        int drawX = (int)simX;
-        int drawY = (int)simY;
+        int drawX = (int)roundf(simX);
+        int drawY = (int)roundf(simY);
 
-        if (drawY <= 1)
+        if (drawY <= 2)
             break;
 
-        int row = drawY - 1;
-        int col = (drawX - offsetX) / 2;
+        int hitR = -1;
+        int hitC = -1;
+        float bestDist = ORB_HIT_DIST;
 
-        if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS &&
-            state.grid[row][col].color != OrbColor::NONE)
+        int centerRow = (int)(simY - 1);
+        int centerCol = (int)((simX - offsetX) / 2.0f);
+
+        for (int r = centerRow - 2; r <= centerRow + 2; ++r)
         {
-            if (erase)
+            for (int c = centerCol - 1; c <= centerCol + 1; ++c)
             {
-                GotoXY(GridToScreenX(col), GridToScreenY(row));
+                if (!InGrid(r, c))
+                    continue;
 
-                if (state.grid[row][col].item == ItemType::OrbBarrage)
-                {
-                    SetColor(Color::WHITE);
-                    SetUnicodeMode();
-                    wcout << L"▣";
-                    SetDefaultMode();
-                    SetColor();
-                }
-                else
-                {
-                    SetColor(ToConsoleColor(state.grid[row][col].color));
-                    SetUnicodeMode();
-                    wcout << GetOrbShape(state.grid[row][col].type);
-                    SetDefaultMode();
-                    SetColor();
-                }
+                if (state.grid[r][c].color == OrbColor::NONE)
+                    continue;
+
+                float dx = simX - GridToScreenX(c);
+                float dy = simY - GridToScreenY(r);
+                float dist = dx * dx + dy * dy;
+
+                if (dist >= bestDist)
+                    continue;
+
+                bestDist = dist;
+                hitR = r;
+                hitC = c;
             }
-            else
-                break;
-
-            continue;
         }
 
         float currentAngle = atan2(simDirX, -simDirY) * 180.0f / 3.141592f;
-        wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
-        GotoXY(drawX , drawY);
-        SetUnicodeMode();
-        wcout << aimChar;
-        SetDefaultMode();
+
+        int aimX = drawX;
+        int aimY = drawY; 
+
+        int aimRow = aimY - 1;
+
+        bool isOnOrb = false;
+
+        for (int c = 0; c < GRID_COLS; ++c)
+        {
+            if (!InGrid(aimRow, c))
+                continue;
+
+            if (state.grid[aimRow][c].color == OrbColor::NONE)
+                continue;
+
+            int orbX = GridToScreenX(c);
+
+            if (aimX >= orbX - 1 && aimX <= orbX + 1)
+            {
+                isOnOrb = true;
+                break;
+            }
+        }
+
+        if (!isOnOrb)
+        {
+            wchar_t aimChar = erase ? L' ' : GetAimChar(currentAngle);
+
+            GotoXY(aimX, aimY);
+            SetUnicodeMode();
+            wcout << aimChar;
+            SetDefaultMode();
+        }
+
+        if (hitR != -1)
+        {
+            break;
+        }
     }
 
     SetColor();
@@ -917,12 +963,12 @@ int GridToScreenY(int row)
     return row + 1  ;
 }
 
-bool CheckOrbCollision(const GameState& state, const Ball& ball, int& hitR, int& hitC)
+bool CheckOrbCollision(const GameState& state, float x, float y, float dirX, float dirY, int& hitR, int& hitC)
 {
     hitR = -1;
     hitC = -1;
 
-    float bestDist = 4.0f;
+    float bestDist = ORB_HIT_DIST;
 
     for (int i = 0; i < GRID_ROWS; ++i)
     {
@@ -931,8 +977,8 @@ bool CheckOrbCollision(const GameState& state, const Ball& ball, int& hitR, int&
             if (state.grid[i][j].color == OrbColor::NONE)
                 continue;
 
-            float dx = ball.x - GridToScreenX(j);
-            float dy = ball.y - GridToScreenY(i);
+            float dx = x - GridToScreenX(j);
+            float dy = y - GridToScreenY(i);
             float dist = dx * dx + dy * dy;
 
             if (dist < bestDist)
@@ -947,64 +993,58 @@ bool CheckOrbCollision(const GameState& state, const Ball& ball, int& hitR, int&
     return hitR != -1;
 }
 
-void SnapBallToGrid(GameState& state, Ball& ball, int hitR, int hitC)
+bool SnapBallToGrid(GameState& state, Ball& ball, int hitR, int hitC)
 {
-    ClearCell((int)ball.prevX, (int)ball.prevY);
-    ClearCell((int)ball.x, (int)ball.y);
+    ClearCell((int)roundf(ball.prevX), (int)roundf(ball.prevY));
+    ClearCell((int)roundf(ball.x), (int)roundf(ball.y));
 
     int bestRow = -1;
     int bestCol = -1;
     float bestDist = 1e30f;
 
-    bool canStickSide = false;
-
-    if (ball.dirX > 0.35f || ball.dirX < -0.35f)
-        canStickSide = true;
-
     int nb[4][2];
     GetNeighbors(hitR, hitC, nb);
-    for (int i = 0; i < 4; ++i)
+
+    for (int i =  0; i < 2; ++i)
     {
-        int r = nb[i][0];
-        int c = nb[i][1];
+        bool allowSide = (i == 1);
 
-        if (!InGrid(r, c))
-            continue;
-
-        if (state.grid[r][c].color != OrbColor::NONE)
-            continue;
-
-        if (!canStickSide && r == hitR)
-            continue;
-
-        float dx = ball.x - GridToScreenX(c);
-        float dy = ball.y - GridToScreenY(r);
-        float dist = dx * dx + dy * dy;
-
-        if (dist < bestDist)
+        for (int j = 0; j < 4; ++j)
         {
-            bestDist = dist;
-            bestRow = r;
-            bestCol = c;
-        }
-    }
+            int r = nb[j][0];
+            int c = nb[j][1];
 
-    if (bestRow == -1)
-    {
-        int r = hitR + 1;
-        int c = hitC;
+            if (!InGrid(r, c))
+                continue;
 
-        if (InGrid(r, c) && state.grid[r][c].color == OrbColor::NONE)
-        {
-            bestRow = r;
-            bestCol = c;
+            if (state.grid[r][c].color != OrbColor::NONE)
+                continue;
+
+            bool isSideCell = (r == hitR);
+
+            if (isSideCell && !allowSide)
+                continue;
+
+            float dx = ball.x - GridToScreenX(c);
+            float dy = ball.y - GridToScreenY(r);
+            float dist = dx * dx + dy * dy;
+
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                bestRow = r;
+                bestCol = c;
+            }
         }
+
+        if (bestRow != -1)
+            break;
     }
 
     if (bestRow == -1)
     {
         RenderGrid(state);
-        return;
+        return false;
     }
 
     state.grid[bestRow][bestCol].color = ball.color;
@@ -1016,6 +1056,8 @@ void SnapBallToGrid(GameState& state, Ball& ball, int hitR, int hitC)
 
     state.shooter.prevAngle = 999.0f;
     RenderAimLine(state);
+
+    return true;
 }
 
 OrbColor GetRandomBubbleColor()
@@ -1116,7 +1158,7 @@ void CollectItemAt(GameState& state, int r, int c)
 {
     if (!InGrid(r, c))
         return;
-
+        
     if (state.grid[r][c].item == ItemType::NONE ||
         state.hasItem)
         return;

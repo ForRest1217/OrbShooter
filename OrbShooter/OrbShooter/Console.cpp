@@ -166,8 +166,8 @@ void SetConsoleMouseInputDisabled()
 	GetConsoleMode(handle, &mode);
 	mode &= ~ENABLE_QUICK_EDIT_MODE;
 	mode &= ~ENABLE_INSERT_MODE;
+	mode &= ~ENABLE_MOUSE_INPUT;
 
-	mode |= ENABLE_MOUSE_INPUT;
 	mode |= ENABLE_EXTENDED_FLAGS;
 
 	SetConsoleMode(handle, mode);
